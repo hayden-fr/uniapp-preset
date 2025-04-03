@@ -3,6 +3,7 @@
     "vue.volar",
     "esbenp.prettier-vscode",
     "editorconfig.editorconfig",
-    "bradlc.vscode-tailwindcss"
+    "bradlc.vscode-tailwindcss",
+    "streetsidesoftware.code-spell-checker"
   ]
 }

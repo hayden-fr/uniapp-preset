@@ -3,5 +3,20 @@
   "files.associations": {
     "manifest.json": "jsonc",
     "pages.json": "jsonc"
-  }
+  },
+  "cSpell.words": [
+    "dcloudio",
+    "unplugin",
+    "kuaishou",
+    "toutiao",
+    "weixin",
+    "quickapp",
+    "automator",
+    "stacktracey",
+    "nvue",
+    "splashscreen",
+    "autofocus",
+    "ntvs",
+    "njsproj"
+  ]
 }
