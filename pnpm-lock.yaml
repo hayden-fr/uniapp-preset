@@ -114,6 +114,9 @@ importers:
       typescript-eslint:
         specifier: ^8.29.0
         version: 8.29.0(eslint@9.23.0)(typescript@5.8.2)
+      uniapp-easycom-types:
+        specifier: ^1.0.0
+        version: 1.0.0(@types/node@22.14.0)(terser@5.39.0)
       unplugin-auto-import:
         specifier: ^19.1.2
         version: 19.1.2
@@ -3637,6 +3640,9 @@ packages:
 
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
+
+  uniapp-easycom-types@1.0.0:
+    resolution: {integrity: sha512-n+9qkgfJmNQoSD9TEHHXCR+gIAf0XIhr2FAeHg6vf7IR/b1PgwTassUM5LnxuVBG8VWZDWMrh8U928DNrzq6Xw==}
 
   unicode-canonical-property-names-ecmascript@2.0.1:
     resolution: {integrity: sha512-dA8WbNeb2a6oQzAQ55YlT5vQAWGV9WXOsi3SskE3bcCdM0P4SDd+24zS/OCacdRq5BkdsRj9q3Pg6YyQoxIGqg==}
@@ -8480,6 +8486,19 @@ snapshots:
   ufo@1.5.4: {}
 
   undici-types@6.21.0: {}
+
+  uniapp-easycom-types@1.0.0(@types/node@22.14.0)(terser@5.39.0):
+    dependencies:
+      fast-glob: 3.3.3
+      vite: 5.2.8(@types/node@22.14.0)(terser@5.39.0)
+    transitivePeerDependencies:
+      - '@types/node'
+      - less
+      - lightningcss
+      - sass
+      - stylus
+      - sugarss
+      - terser
 
   unicode-canonical-property-names-ecmascript@2.0.1: {}
 
