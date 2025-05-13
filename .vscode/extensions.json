@@ -1,9 +1,10 @@
 {
   "recommendations": [
     "vue.volar",
+    "antfu.unocss",
+    "dbaeumer.vscode-eslint",
     "esbenp.prettier-vscode",
     "editorconfig.editorconfig",
-    "bradlc.vscode-tailwindcss",
     "streetsidesoftware.code-spell-checker"
   ]
 }

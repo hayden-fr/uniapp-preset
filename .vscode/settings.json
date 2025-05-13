@@ -19,6 +19,9 @@
     "splashscreen",
     "autofocus",
     "ntvs",
-    "njsproj"
+    "njsproj",
+    "unocss",
+    "wxss",
+    "preflights"
   ]
 }
