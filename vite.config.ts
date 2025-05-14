@@ -2,7 +2,7 @@ import uni from '@dcloudio/vite-plugin-uni'
 import easycomTypes from 'uniapp-easycom-types'
 import autoImport from 'unplugin-auto-import/vite'
 import { defineConfig } from 'vite'
-import UnoCSSApplet from './build/uno-applet'
+import UnoCSSApplet from './plugins/uno-applet'
 
 export default defineConfig(async () => {
   const UnoCSS = (await import('unocss/vite')).default
