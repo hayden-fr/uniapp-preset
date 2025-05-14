@@ -7,7 +7,10 @@ import UnoCSSApplet from './build/uno-applet'
 export default defineConfig(async () => {
   const UnoCSS = (await import('unocss/vite')).default
 
+  const envPrefix = 'APP_'
+
   return {
+    envPrefix: envPrefix,
     plugins: [
       uni(),
       UnoCSS(),
@@ -16,8 +19,9 @@ export default defineConfig(async () => {
         dts: 'src/types/easycom.d.ts',
       }),
       autoImport({
-        imports: ['vue', 'pinia', 'uni-app'],
+        imports: ['vue', 'pinia', 'uni-app', { 'lodash-es': [['*', '_']] }],
         dts: 'src/types/auto-imports.d.ts',
+        dirs: ['src/hooks', 'src/stores', 'src/utils'],
       }),
     ],
   }
