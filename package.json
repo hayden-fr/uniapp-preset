@@ -30,9 +30,7 @@
     "build:mp-weixin": "uni build -p mp-weixin",
     "build:quickapp-webview": "uni build -p quickapp-webview",
     "build:quickapp-webview-huawei": "uni build -p quickapp-webview-huawei",
-    "build:quickapp-webview-union": "uni build -p quickapp-webview-union",
-    "check": "biome check --write",
-    "format": "biome format --write"
+    "build:quickapp-webview-union": "uni build -p quickapp-webview-union"
   },
   "license": "MIT",
   "dependencies": {
