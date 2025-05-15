@@ -92,7 +92,7 @@ class UniHttpRequest {
    * @param config
    */
   setConfig(config: AnyObject) {
-    this.config = { ...this.config, ...config }
+    this.config = _.merge({}, this.config, _.cloneDeep(config))
   }
 
   private parseMultipartFormData(requestOptions: UniHttpRequestOptions) {
