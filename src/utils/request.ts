@@ -26,11 +26,19 @@ declare global {
      */
     interceptors?: InterceptOptions
     /**
-     * 竞态条件
+     * 竞态条件，使用字符串作为竞态条件判断值，若同一时间存在相同条件，则取消较旧的请求
+     *
+     * 允许设置的值： string | boolean | undefined
+     * - 直接设置字符串表示当前使用的竞态条件
+     * - 设置为 true 表示使用当前 URL 作为竞态条件
+     * - 设置为 false 表示当前请求不使用竞态条件
+     * - undefined 表示跳过当前竞态条件判断，使用下一个竞态条件
+     * - 可以传入一个函数，动态的返回设置值，返回值遵循上述规则
      */
     raceCondition?:
+      | string
       | boolean
-      | ((options: UniHttpRequestOptions) => string | null)
+      | ((options: UniHttpRequestOptions) => string | boolean | undefined)
   }
 
   /**
@@ -111,13 +119,27 @@ class UniHttpRequest {
   }
 
   private parseRaceCondition(requestOptions: UniHttpRequestOptions) {
-    if (typeof requestOptions.raceCondition === 'boolean') {
-      return requestOptions.raceCondition ? requestOptions.url : null
+    let raceCondition = requestOptions.raceCondition
+    if (typeof raceCondition === 'function') {
+      raceCondition = raceCondition(requestOptions)
     }
-    if (typeof requestOptions.raceCondition === 'function') {
-      return requestOptions.raceCondition(requestOptions)
+    if (typeof raceCondition === 'boolean') {
+      raceCondition = raceCondition ? requestOptions.url : false
     }
-    return null
+
+    if (
+      typeof raceCondition === 'string' ||
+      typeof raceCondition === 'undefined' ||
+      raceCondition === false
+    ) {
+      return raceCondition
+    }
+
+    console.warn(
+      `[UniHttpRequest] 竞态条件值类型错误，期待类型 string | false | undefined ，实际类型 %s ，跳过当前竞态条件`,
+      typeof raceCondition,
+    )
+    return undefined
   }
 
   private async request<T>(options: UniHttpRequestOptions) {

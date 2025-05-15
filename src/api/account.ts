@@ -40,7 +40,7 @@ export const accountLogin = async (params: {
         return response
       },
     },
-    // 设置当前请求为竞态条件
+    // 设置当前请求为竞态条件请求
     raceCondition: true,
   })
 }
