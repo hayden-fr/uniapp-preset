@@ -1,9 +1,9 @@
-export const accountLogin = async (params: {
+export const requestExample = async (params: {
   username: string
   password: string
 }) => {
   return request.post({
-    url: '/admin/oauth2/token',
+    url: '/example',
     // 设置查询字符串
     params: {
       username: params.username,
