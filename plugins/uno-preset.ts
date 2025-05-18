@@ -1,5 +1,5 @@
 import type { CSSEntry, PresetMiniTheme } from 'unocss'
-import { definePreset } from 'unocss'
+import { definePreset, mergeConfigs } from 'unocss'
 
 class AppletContext {
   rules: Record<string, string> = {}
@@ -52,6 +52,50 @@ class AppletContext {
     }
   }
 }
+
+const presetTransformInvalidCharacter = definePreset(() => {
+  const ctx = new AppletContext()
+  return {
+    name: 'unocss-preset-applet:transform-invalid-character',
+    postprocess: [
+      (util) => {
+        if (util.selector) {
+          util.selector = ctx.transformClassnames(util.selector, true)
+          util.selector = util.selector.replace(/\\./g, '_a_')
+        }
+        for (const entry of util.entries) {
+          ctx.transformRem(entry)
+        }
+      },
+    ],
+    transformers: [
+      {
+        name: 'transformer-applet-classnames',
+        enforce: 'pre',
+
+        async transform(code, _, { uno }) {
+          let token = code.toString()
+
+          const { matched } = await uno.generate(token, { preflights: false })
+          const replacements = ctx.filterReplacements(Array.from(matched))
+          for (let replace of replacements) {
+            let replaced = ctx.transformClassnames(replace)
+
+            // 删除负数前缀
+            // 负数前缀的 CSS 由 variant 生成
+            // 所以带负数前缀的类名不在 rules 范围内
+            replace = replace.replace(/^-+/g, '')
+            replaced = replaced.replace(/^-+/g, '')
+
+            uno.config.shortcuts.push([replaced, replace, {}])
+            token = token.replaceAll(replace, replaced)
+          }
+          code.overwrite(0, code.original.length, token)
+        },
+      },
+    ],
+  }
+})
 
 class ConditionCompilation {
   private conditionRegexp = /^ifn?def-\[?(?<platform>[A-Za-z0-9-|]+?)\]?:/i
@@ -137,52 +181,31 @@ const presetConditionCompilation = definePreset(() => {
   }
 })
 
-const presetApplet = definePreset<PresetMiniTheme>(() => {
-  const ctx = new AppletContext()
+const presetAppletPreflights = definePreset<PresetMiniTheme>(() => {
   return {
-    name: 'unocss-preset-applet',
-    presets: [presetConditionCompilation()],
+    name: 'unocss-preset-applet:preflights',
     theme: {
       preflightRoot: ['page,:before,:after', '::backdrop'],
     },
+  }
+})
+
+const presetStylingBasedOnParentState = definePreset(() => {
+  return {
+    name: 'unocss-preset-applet:styling-based-on-parent-sate',
     rules: [[/^group(\/.*)?$/, () => ({ content: '""' })]],
-    postprocess: [
-      (util) => {
-        if (util.selector) {
-          util.selector = ctx.transformClassnames(util.selector, true)
-          util.selector = util.selector.replace(/\\./g, '_a_')
-        }
-        for (const entry of util.entries) {
-          ctx.transformRem(entry)
-        }
-      },
-    ],
-    transformers: [
-      {
-        name: 'transformer-applet-classnames',
-        enforce: 'pre',
+  }
+})
 
-        async transform(code, _, { uno }) {
-          let token = code.toString()
-
-          const { matched } = await uno.generate(token, { preflights: false })
-          const replacements = ctx.filterReplacements(Array.from(matched))
-          for (let replace of replacements) {
-            let replaced = ctx.transformClassnames(replace)
-
-            // 删除负数前缀
-            // 负数前缀的 CSS 由 variant 生成
-            // 所以带负数前缀的类名不在 rules 范围内
-            replace = replace.replace(/^-+/g, '')
-            replaced = replaced.replace(/^-+/g, '')
-
-            uno.config.shortcuts.push([replaced, replace, {}])
-            token = token.replaceAll(replace, replaced)
-          }
-          code.overwrite(0, code.original.length, token)
-        },
-      },
-    ],
+const presetApplet = definePreset<PresetMiniTheme>(() => {
+  return {
+    ...mergeConfigs([
+      presetAppletPreflights(),
+      presetConditionCompilation(),
+      presetStylingBasedOnParentState(),
+      presetTransformInvalidCharacter(),
+    ]),
+    name: 'unocss-preset-applet',
   }
 })
 
