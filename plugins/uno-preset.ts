@@ -17,6 +17,7 @@ class AppletContext {
       '[': '_ls_',
       ']': '_rs_',
       ',': '_m_',
+      '|': '_o_',
     }
   }
 
@@ -52,10 +53,95 @@ class AppletContext {
   }
 }
 
+class ConditionCompilation {
+  private conditionRegexp = /^ifn?def-\[?(?<platform>[A-Za-z0-9-|]+?)\]?:/i
+
+  isValidConditionCompileString(str: string) {
+    return this.conditionRegexp.test(str)
+  }
+
+  matchCurrentPlatform(conditionStr: string) {
+    const match = conditionStr.match(this.conditionRegexp)
+    if (!match) throw new Error(`"${conditionStr}" 不是有效的条件编译`)
+
+    const platform = match.groups!.platform
+    const uniPlatform = process.env.UNI_PLATFORM ?? ''
+    const currPlatform = uniPlatform.toLowerCase()
+
+    const platforms = platform.toLowerCase().split('|').filter(Boolean)
+    const matchedPlatform = platforms.some((name) => {
+      if (name === 'app') {
+        return currPlatform === 'app' || currPlatform.startsWith('app-')
+      }
+      if (name === 'mp') {
+        return currPlatform === 'mp' || currPlatform.startsWith('mp-')
+      }
+      if (name === 'h5' || name === 'web') {
+        return currPlatform === 'h5' || currPlatform === 'web'
+      }
+      return name === currPlatform
+    })
+
+    const isIfdef = conditionStr.toLowerCase().startsWith('ifdef-')
+
+    return {
+      condition: match[0],
+      conditionPlatforms: platforms,
+      isMatched: matchedPlatform === isIfdef,
+    }
+  }
+}
+
+const presetConditionCompilation = definePreset(() => {
+  const ctx = new ConditionCompilation()
+  return {
+    name: 'unocss-preset-applet:condition-compilation',
+    variants: [
+      {
+        name: 'uniapp-condition-compilation',
+        order: 0,
+        match: (matcher) => {
+          if (ctx.isValidConditionCompileString(matcher)) {
+            const { condition, isMatched } = ctx.matchCurrentPlatform(matcher)
+            const newMatcher = matcher.replace(condition, '')
+
+            if (isMatched) {
+              return { matcher: newMatcher }
+            }
+            return { matcher: newMatcher, selector: () => '' }
+          }
+        },
+      },
+    ],
+    transformers: [
+      {
+        name: 'remove-invalid-classnames',
+        enforce: 'pre',
+
+        async transform(code, _, { uno }) {
+          let token = code.toString()
+
+          const { matched } = await uno.generate(token, { preflights: false })
+          for (const contentStr of matched) {
+            if (ctx.isValidConditionCompileString(contentStr)) {
+              const { isMatched } = ctx.matchCurrentPlatform(contentStr)
+              if (!isMatched) {
+                token = token.replaceAll(contentStr, '')
+              }
+            }
+          }
+          code.overwrite(0, code.original.length, token)
+        },
+      },
+    ],
+  }
+})
+
 const presetApplet = definePreset<PresetMiniTheme>(() => {
   const ctx = new AppletContext()
   return {
     name: 'unocss-preset-applet',
+    presets: [presetConditionCompilation()],
     theme: {
       preflightRoot: ['page,:before,:after', '::backdrop'],
     },
