@@ -1,13 +1,23 @@
 import uni from '@dcloudio/vite-plugin-uni'
 import easycomTypes from 'uniapp-easycom-types'
 import autoImport from 'unplugin-auto-import/vite'
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv, type ProxyOptions } from 'vite'
 import UnoCSSApplet from './plugins/uno-applet'
 
-export default defineConfig(async () => {
+export default defineConfig(async ({ mode }) => {
   const UnoCSS = (await import('unocss/vite')).default
 
   const envPrefix = 'APP_'
+  const env = loadEnv(mode, process.cwd(), envPrefix)
+
+  const proxy: Record<string, string | ProxyOptions> = {}
+  if (env.APP_BASE_URL && env.APP_PROXY_URL) {
+    proxy[env.APP_BASE_URL] = {
+      target: env.APP_PROXY_URL,
+      changeOrigin: true,
+      rewrite: (path) => path.replace(new RegExp(`^${env.APP_BASE_URL}`), ''),
+    }
+  }
 
   return {
     envPrefix: envPrefix,
@@ -24,5 +34,8 @@ export default defineConfig(async () => {
         dirs: ['src/hooks', 'src/stores', 'src/utils'],
       }),
     ],
+    server: {
+      proxy: proxy,
+    },
   }
 })
