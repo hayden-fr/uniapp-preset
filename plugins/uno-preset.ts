@@ -1,5 +1,5 @@
 import type { CSSEntry, PresetMiniTheme } from 'unocss'
-import { definePreset, mergeConfigs } from 'unocss'
+import { definePreset, entriesToCss, mergeConfigs } from 'unocss'
 
 class AppletContext {
   rules: Record<string, string> = {}
@@ -181,12 +181,41 @@ const presetConditionCompilation = definePreset(() => {
   }
 })
 
-const presetAppletPreflights = definePreset<PresetMiniTheme>(() => {
+const presetAppletPreflights = definePreset<object, Record<string, any>>(() => {
   return {
     name: 'unocss-preset-applet:preflights',
     theme: {
       preflightRoot: ['page,:before,:after', '::backdrop'],
     },
+    preflights: [
+      {
+        layer: 'preflights',
+        getCSS: ({ theme }) => {
+          type CSSProperties = Record<string, string>
+          type CSSEntires = [string, CSSProperties][]
+          const cssEntries: CSSEntires = [
+            [
+              'view, image',
+              {
+                'border-style': 'solid',
+                'border-width': '0',
+                'border-color': theme.colors?.light[500],
+              },
+            ],
+            ['view, image', { 'box-sizing': 'border-box' }],
+            ['page', { height: '100%' }],
+          ]
+
+          return cssEntries
+            .map(([selector, properties]) => {
+              const entries = Object.entries(properties)
+              const css = entriesToCss(entries)
+              return `${selector} {${css}}`
+            })
+            .join('')
+        },
+      },
+    ],
   }
 })
 
