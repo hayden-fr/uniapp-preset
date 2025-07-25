@@ -1,6 +1,6 @@
-import { defineConfig, presetWind3 } from 'unocss'
+import { defineConfig, presetIcons, presetWind3 } from 'unocss'
 import presetApplet from './plugins/uno-preset'
 
 export default defineConfig({
-  presets: [presetWind3(), presetApplet()],
+  presets: [presetWind3(), presetIcons(), presetApplet()],
 })
