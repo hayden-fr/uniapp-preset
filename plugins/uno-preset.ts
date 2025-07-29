@@ -199,7 +199,7 @@ const presetAppletPreflights = definePreset<object, Record<string, any>>(() => {
               {
                 'border-style': 'solid',
                 'border-width': '0',
-                'border-color': theme.colors?.light[500],
+                'border-color': theme.colors?.light[700],
               },
             ],
             ['view, image', { 'box-sizing': 'border-box' }],

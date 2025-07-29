@@ -8,7 +8,7 @@
       :style="styles?.item"
     >
       <view
-        class="absolute left-0 flex h-12 w-full items-center px-4"
+        class="border-light absolute left-0 flex h-12 w-full items-center px-4"
         :class="{ 'border-b': (item.labelPosition ?? labelPosition) === 'top' }"
       >
         <view
