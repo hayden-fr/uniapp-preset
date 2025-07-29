@@ -25,7 +25,7 @@ declare global {
 
 const props = defineProps<Props>()
 
-const modelValue = defineModel<string>()
+const modelValue = defineModel<string | number>()
 
 defineOptions({
   inheritAttrs: false,
