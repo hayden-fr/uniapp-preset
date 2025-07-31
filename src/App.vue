@@ -12,14 +12,9 @@ onHide(() => {
 
 <style>
 /* #ifdef H5 */
-.uni-mask {
-  z-index: 9999999;
-}
-
 .uni-toast {
   top: 40%;
   background: #4c4c4c;
-  z-index: 9999999;
 }
 
 .uni-toast__icon {
