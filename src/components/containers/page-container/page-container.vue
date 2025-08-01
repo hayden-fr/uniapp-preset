@@ -2,10 +2,15 @@
   <view
     role="page-container"
     class="flex h-full flex-col overflow-hidden"
-    :style="{ backgroundColor }"
+    :class="[classNames?.root]"
+    :style="[styles?.root]"
   >
     <scroll-view :scroll-y="scrollable" class="flex-1 overflow-hidden">
-      <view class="flex flex-col overflow-hidden">
+      <view
+        class="flex flex-col overflow-hidden"
+        :class="[classNames?.content]"
+        :style="[styles?.content]"
+      >
         <slot></slot>
       </view>
     </scroll-view>
@@ -26,8 +31,11 @@ import waterMark from './water-mark.vue'
 interface Props {
   scrollable?: boolean
   pullToRefresh?: boolean
-  backgroundColor?: string
+  classNames?: Semantic<SemanticDOM, ClassNameValue>
+  styles?: Semantic<SemanticDOM, StyleValue>
 }
+
+type SemanticDOM = 'root' | 'content'
 
 defineProps<Props>()
 
