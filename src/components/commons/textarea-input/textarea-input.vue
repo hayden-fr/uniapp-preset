@@ -1,5 +1,7 @@
 <template>
-  <text v-if="readonly">{{ modelValue }}</text>
+  <view v-if="readonly" class="py-3">
+    <text>{{ modelValue }}</text>
+  </view>
   <view v-else class="relative w-full py-3">
     <textarea
       :value="modelValue"
