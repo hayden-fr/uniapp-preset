@@ -4,8 +4,8 @@
       v-for="item in items"
       :key="item.field"
       class="relative min-h-12 px-4"
-      :class="[{ 'border-b': border }, classNames?.item]"
-      :style="styles?.item"
+      :class="[{ 'border-b': border }, classNames?.item, item.classNames?.item]"
+      :style="[styles?.item, item.styles?.item]"
     >
       <view
         class="border-light absolute left-0 flex h-12 w-full items-center px-4"
@@ -18,9 +18,14 @@
           *
         </view>
         <view
+          v-show="(item.labelPosition ?? labelPosition) !== false"
           class="min-w-16 shrink-0"
-          :class="classNames?.label"
-          :style="[{ width: item.labelWidth ?? labelWidth }, styles?.label]"
+          :class="[classNames?.label, item.classNames?.label]"
+          :style="[
+            { width: item.labelWidth ?? labelWidth },
+            styles?.label,
+            item.styles?.label,
+          ]"
         >
           {{ item.label }}
         </view>
@@ -36,16 +41,21 @@
         <view
           v-if="(item.labelPosition ?? labelPosition) === 'left'"
           class="min-w-16 shrink-0"
-          :class="classNames?.label"
-          :style="[{ width: item.labelWidth ?? labelWidth }, styles?.label]"
+          :class="[classNames?.label, item.classNames?.label]"
+          :style="[
+            { width: item.labelWidth ?? labelWidth },
+            styles?.label,
+            item.styles?.label,
+          ]"
         ></view>
         <view
           class="flex-1 overflow-hidden"
           :class="[
             { 'text-right': (item.labelPosition ?? labelPosition) === 'left' },
             classNames?.input,
+            item.classNames?.input,
           ]"
-          :style="styles?.input"
+          :style="[styles?.input, item.styles?.input]"
         >
           <template v-if="item.type === 'custom'">
             <slot :name="item.field"></slot>
@@ -97,22 +107,21 @@ import numberInput from '@/components/commons/number-input/number-input.vue'
 import passwordInput from '@/components/commons/password-input/password-input.vue'
 import textInput from '@/components/commons/text-input/text-input.vue'
 import textareaInput from '@/components/commons/textarea-input/textarea-input.vue'
-import type { StyleValue } from 'vue'
 
 const formData = defineModel<Data>({ default: () => ({}) })
 
 interface Props {
   items?: FormItem<Data>[]
   readonly?: boolean
-  labelPosition?: 'top' | 'left'
-  labelWidth?: string
-  labelAlign?: 'left' | 'right' | 'center'
+  labelPosition?: BaseFormItem<Data>['labelPosition']
+  labelWidth?: BaseFormItem<Data>['labelWidth']
+  labelAlign?: BaseFormItem<Data>['labelAlign']
   border?: boolean
-  classNames?: Record<SemanticDOM, any>
-  styles?: Record<SemanticDOM, StyleValue>
+  classNames?: Semantic<SemanticDOM, ClassNameValue>
+  styles?: Semantic<SemanticDOM, StyleValue>
 }
 
-type SemanticDOM = 'root' | 'item' | 'label' | 'input'
+type SemanticDOM = 'root' | FormItemSemanticDOM
 
 withDefaults(defineProps<Props>(), {
   items: () => [],
