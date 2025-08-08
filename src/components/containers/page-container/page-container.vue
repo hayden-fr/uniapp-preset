@@ -7,7 +7,7 @@
   >
     <scroll-view :scroll-y="scrollable" class="flex-1 overflow-hidden">
       <view
-        class="flex flex-col overflow-hidden"
+        class="flex h-full flex-col"
         :class="[classNames?.content]"
         :style="[styles?.content]"
       >
