@@ -1,7 +1,7 @@
 export {}
 
 declare global {
-  export type { StyleValue } from 'vue'
+  export type { StyleValue, UnwrapRef } from 'vue'
   import('vue')
 }
 
@@ -56,5 +56,24 @@ declare global {
 
   interface FormItemCustom {
     type: 'custom'
+  }
+
+  type Pagination = {
+    current: number
+    size: number
+    total: number
+  }
+
+  interface ResponseStructure<T> {
+    code: number
+    message: string
+    data: T
+  }
+
+  interface ListStructure<T> {
+    records: T[]
+    current: number
+    size: number
+    total: number
   }
 }

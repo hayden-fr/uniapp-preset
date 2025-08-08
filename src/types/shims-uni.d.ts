@@ -6,3 +6,13 @@ declare module '@vue/runtime-core' {
 
   interface ComponentCustomOptions extends Hooks {}
 }
+
+declare global {
+  interface EventHandle<T extends AnyObject = AnyObject> {
+    type: string
+    timeStamp: number
+    detail: T
+    target: AnyObject
+    currentTarget: AnyObject
+  }
+}
