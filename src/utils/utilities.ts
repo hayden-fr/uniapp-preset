@@ -11,7 +11,6 @@ export const toastError = async (err: unknown, defaultMsg = '未知错误') => {
     title: title,
     icon: icon,
     duration: 3000,
-    mask: true,
   })
 }
 
@@ -20,7 +19,6 @@ export const toastSuccess = async (msg: string) => {
     title: msg,
     icon: 'success',
     duration: 2000,
-    mask: true,
   })
 }
 
