@@ -10,3 +10,8 @@ declare module '*.vue' {
   const component: DefineComponent<object, object, any>
   export default component
 }
+
+declare module '@/pages.json' {
+  const uniAppPagesConfig: UniAppPagesConfig
+  export default uniAppPagesConfig
+}

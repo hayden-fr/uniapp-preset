@@ -1,7 +1,7 @@
 export {}
 
 declare global {
-  export type { StyleValue, UnwrapRef } from 'vue'
+  export type { StyleValue, UnwrapRef, App as VueApp } from 'vue'
   import('vue')
 }
 
