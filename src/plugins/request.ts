@@ -1,10 +1,27 @@
-import config from '@/config'
+class RacingRequestTask {
+  private static instance: RacingRequestTask
 
-declare global {
-  interface CustomConfig {
-    request: Omit<UniHttpRequestOptions, 'url'>
+  private requestTaskMap: Map<string, UniApp.RequestTask> = new Map()
+
+  static getInstance() {
+    return this.instance ?? (this.instance = new RacingRequestTask())
   }
 
+  add(url: string, requestTask: UniApp.RequestTask) {
+    this.remove(url)
+    this.requestTaskMap.set(url, requestTask)
+  }
+
+  remove(url: string) {
+    if (this.requestTaskMap.has(url)) {
+      const requestTask = this.requestTaskMap.get(url)
+      requestTask?.abort()
+      this.requestTaskMap.delete(url)
+    }
+  }
+}
+
+declare global {
   /**
    * UniHttpRequest 请求配置
    */
@@ -45,25 +62,25 @@ declare global {
    * UniHttpRequest 请求响应
    */
   type UniHttpRequestResponse = UniApp.RequestSuccessCallbackResult
-}
 
-type UniAppRequestOptionsWithoutCallback = Omit<
-  UniApp.RequestOptions,
-  'success' | 'fail' | 'complete'
->
+  /**
+   * 请求拦截器
+   */
+  interface InterceptOptions {
+    /**
+     * 请求拦截
+     */
+    request?: (options: UniHttpRequestOptions) => UniHttpRequestOptions
+    /**
+     * 响应拦截
+     */
+    response?: (response: UniHttpRequestResponse) => UniHttpRequestResponse
+  }
 
-/**
- * 请求拦截器
- */
-interface InterceptOptions {
-  /**
-   * 请求拦截
-   */
-  request?: (options: UniHttpRequestOptions) => UniHttpRequestOptions
-  /**
-   * 响应拦截
-   */
-  response?: (response: UniHttpRequestResponse) => UniHttpRequestResponse
+  type UniAppRequestOptionsWithoutCallback = Omit<
+    UniApp.RequestOptions,
+    'success' | 'fail' | 'complete'
+  >
 }
 
 /**
@@ -72,18 +89,9 @@ interface InterceptOptions {
 type QuickRequestOptions = Omit<UniHttpRequestOptions, 'method'>
 
 class UniHttpRequest {
-  private static instance: UniHttpRequest
-
-  static getInstance() {
-    if (!UniHttpRequest.instance) {
-      UniHttpRequest.instance = new UniHttpRequest(config.request)
-    }
-    return UniHttpRequest.instance
-  }
-
   private racingRequestTask: RacingRequestTask
 
-  private constructor(private config: Partial<UniHttpRequestOptions> = {}) {
+  constructor(private config: Partial<UniHttpRequestOptions> = {}) {
     this.racingRequestTask = new RacingRequestTask()
   }
 
@@ -142,35 +150,33 @@ class UniHttpRequest {
     return undefined
   }
 
-  private async request<T>(options: UniHttpRequestOptions) {
+  private async httpRequest<T>(options: UniHttpRequestOptions) {
     const config = _.cloneDeep(this.config)
     const custom = _.cloneDeep(options)
     let requestOptions: UniHttpRequestOptions = _.merge({}, config, custom)
-
     if (config.interceptors?.request) {
       requestOptions = config.interceptors.request(requestOptions)
     }
-
     if (custom.interceptors?.request) {
       requestOptions = custom.interceptors.request(requestOptions)
     }
-
     const { params = {}, useMultipartFormData } = requestOptions
-    const [relativeUrl, queryString] = requestOptions.url.split('?')
-    const searchParams = new SearchParams(queryString)
-    searchParams.merge(params)
-
+    const urlObject = new URL(requestOptions.url, config.baseURL || '')
+    const relativeUrl = urlObject.pathname
+    const searchParams = urlObject.searchParams
+    for (const key in params) {
+      if (Object.prototype.hasOwnProperty.call(params, key)) {
+        searchParams.append(key, params[key])
+      }
+    }
     const baseUrl = config.baseURL ?? ''
     const absoluteUrlRegexp = /^(https?|ftp|file|wss?):\/\//i
     const prefixUrl = absoluteUrlRegexp.test(relativeUrl) ? '' : baseUrl
-
     const url = `${prefixUrl}${relativeUrl}?${searchParams.toString()}`
     requestOptions.url = url
-
     if (useMultipartFormData) {
       this.parseMultipartFormData(requestOptions)
     }
-
     return new Promise((resolve, reject) => {
       // 解析竞态条件
       const raceCondition =
@@ -182,20 +188,16 @@ class UniHttpRequest {
           ...requestOptions,
           raceCondition: config.raceCondition,
         })
-
       const requestTask = uni.request({
         ...requestOptions,
         success: (res) => {
           let response = _.cloneDeep(res)
-
           if (custom.interceptors?.response) {
             response = custom.interceptors.response(response)
           }
-
           if (config.interceptors?.response) {
             response = config.interceptors.response(response)
           }
-
           if (response.errMsg === 'request:ok') {
             const responseData = response.data as T
             resolve(responseData)
@@ -212,7 +214,6 @@ class UniHttpRequest {
           }
         },
       })
-
       if (raceCondition) {
         this.racingRequestTask.add(raceCondition, requestTask)
       }
@@ -220,88 +221,47 @@ class UniHttpRequest {
   }
 
   async get<T>(options: QuickRequestOptions) {
-    return this.request<T>({ ...options, method: 'GET' })
+    return this.httpRequest<T>({ ...options, method: 'GET' })
   }
 
   async post<T>(options: QuickRequestOptions) {
-    return this.request<T>({ ...options, method: 'POST' })
+    return this.httpRequest<T>({ ...options, method: 'POST' })
   }
 
   async put<T>(options: QuickRequestOptions) {
-    return this.request<T>({ ...options, method: 'PUT' })
+    return this.httpRequest<T>({ ...options, method: 'PUT' })
   }
 
   async delete<T>(options: QuickRequestOptions) {
-    return this.request<T>({ ...options, method: 'DELETE' })
+    return this.httpRequest<T>({ ...options, method: 'DELETE' })
   }
 }
 
-class RacingRequestTask {
-  private static instance: RacingRequestTask
+const instance = shallowRef({} as UniHttpRequest)
 
-  private requestTaskMap: Map<string, UniApp.RequestTask> = new Map()
+export function getUniHttpRequestInstance() {
+  return new Proxy(instance.value, {
+    get(target, p, receiver) {
+      return Reflect.get(instance.value, p, receiver)
+    },
+  })
+}
 
-  static getInstance() {
-    return this.instance ?? (this.instance = new RacingRequestTask())
-  }
-
-  add(url: string, requestTask: UniApp.RequestTask) {
-    this.remove(url)
-    this.requestTaskMap.set(url, requestTask)
-  }
-
-  remove(url: string) {
-    if (this.requestTaskMap.has(url)) {
-      const requestTask = this.requestTaskMap.get(url)
-      requestTask?.abort()
-      this.requestTaskMap.delete(url)
-    }
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $request: UniHttpRequest
   }
 }
 
-class SearchParams {
-  private params: [string, string][] = []
+interface UniRequestOptions extends Omit<UniHttpRequestOptions, 'url'> {}
 
-  constructor(init?: string | AnyObject) {
-    if (init) {
-      this.merge(init)
-    }
-  }
-
-  private parseString(init: string) {
-    for (const item of init.split('&')) {
-      const [key, value] = item.split('=')
-      this.append(key, value)
-    }
-  }
-
-  private parseObject(init: AnyObject) {
-    for (const [key, value] of Object.entries(init)) {
-      const values = Array.isArray(value) ? value : [value]
-      for (const val of values) {
-        this.append(key, val)
-      }
-    }
-  }
-
-  merge(init: string | AnyObject) {
-    if (typeof init === 'string') {
-      this.parseString(init)
-    }
-    if (typeof init === 'object') {
-      this.parseObject(init)
-    }
-  }
-
-  append(key: string, value: string) {
-    this.params.push([key, value])
-  }
-
-  toString() {
-    return this.params
-      .map(([key, value]) => `${key}=${encodeURIComponent(value)}`)
-      .join('&')
+class Request {
+  install(app: VueApp, options: UniRequestOptions = {}) {
+    instance.value = new UniHttpRequest(options)
+    app.config.globalProperties.$request = instance.value
   }
 }
 
-export const request = UniHttpRequest.getInstance()
+export function createRequest() {
+  return new Request()
+}

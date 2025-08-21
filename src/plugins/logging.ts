@@ -27,15 +27,7 @@ class StackError extends Error {
 
 type LoggingType = 'info' | 'warn' | 'error' | 'debug' | 'log'
 
-class Logging {
-  private static instance: Logging
-  public static getInstance() {
-    if (!Logging.instance) {
-      Logging.instance = new Logging()
-    }
-    return Logging.instance
-  }
-
+class UniLogging {
   private printer(type: LoggingType, message?: any, ...optionalParams: any[]) {
     if (message instanceof Error) {
       message = new StackError(message)
@@ -64,4 +56,29 @@ class Logging {
   }
 }
 
-export const logging = Logging.getInstance()
+const instance = shallowRef({} as UniLogging)
+
+export function getUniLoggingInstance() {
+  return new Proxy(instance.value, {
+    get(target, p, receiver) {
+      return Reflect.get(instance.value, p, receiver)
+    },
+  })
+}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    $logging: UniLogging
+  }
+}
+
+class Logging {
+  install(app: VueApp) {
+    instance.value = new UniLogging()
+    app.config.globalProperties.$logging = instance.value
+  }
+}
+
+export function createLogging() {
+  return new Logging()
+}
