@@ -9,10 +9,15 @@ class UniCache {
     uni.setStorageSync(this.getStorageKey(key), value)
   }
 
-  get<T = any>(key: string): T | null
-  get<T = any>(key: string, defaultValue: T): T
-  get<T = any>(key: string, defaultValue?: T) {
-    return uni.getStorageSync(this.getStorageKey(key)) ?? defaultValue
+  get<T = any>(key: string): T | undefined {
+    const storageKey = this.getStorageKey(key)
+    return this.has(key) ? uni.getStorageSync(storageKey) : undefined
+  }
+
+  has(key: string): boolean {
+    const storageKey = this.getStorageKey(key)
+    const storageInfo = uni.getStorageInfoSync()
+    return storageInfo.keys.includes(storageKey)
   }
 
   remove(key: string) {
