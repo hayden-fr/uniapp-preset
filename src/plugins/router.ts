@@ -182,9 +182,15 @@ class UniRouter {
         invoke(result) {
           const to = getRoute(result.url)
 
-          const currentPages = getCurrentPages()
+          interface PageInstance {
+            $page: {
+              fullPath: string
+            }
+          }
+
+          const currentPages = getCurrentPages<PageInstance>()
           const currentPage = currentPages[currentPages.length - 1]
-          const from = getRoute(currentPage.$vm.$page.fullPath)
+          const from = getRoute(currentPage.$page.fullPath)
 
           for (const interceptor of beforeEachInterceptors) {
             interceptor(to, from)
