@@ -20,6 +20,10 @@ class UniRouter {
 
   private readonly pagesMap: Record<string, UniPage | undefined> = {}
 
+  readonly homePageRoute: string
+
+  readonly loginPageRoute: string | undefined
+
   constructor(appConfig: UniAppPagesConfig) {
     this.pages = Object.freeze(appConfig.pages ?? [])
     this.tabBar = Object.freeze(appConfig.tabBar)
@@ -32,6 +36,10 @@ class UniRouter {
     }
     this.pagesMap = Object.freeze($pagesMap)
 
+    this.homePageRoute = this.pages[0].path
+
+    this.loginPageRoute = this.uniIdRouter?.loginPage
+
     this.enhancementUniNavigate()
     this.interceptedUniNavigate()
   }
@@ -42,8 +50,7 @@ class UniRouter {
 
     // 首页的兼容路由地址
     if (route === '') {
-      const homePage = this.pages[0]
-      const route = homePage.path
+      const route = this.homePageRoute
       return { route, path, fullPath }
     }
     return { route, path, fullPath }
