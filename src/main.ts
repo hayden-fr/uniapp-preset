@@ -36,7 +36,7 @@ export function createApp() {
     },
   })
 
-  app.use(Router.createGuard())
+  app.use(Router.createRouter())
 
   return {
     app,
