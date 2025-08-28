@@ -10,7 +10,7 @@ declare global {
 }
 
 interface UniRouterEachInterceptor {
-  (to: UniRoute, from: UniRoute): void
+  (to: UniRoute, from: UniRoute): void | Promise<void>
 }
 
 interface PageInstance {
@@ -51,8 +51,7 @@ class UniRouter {
 
     this.loginPageRoute = this.uniIdRouter?.loginPage
 
-    this.enhancementUniNavigate()
-    this.interceptedUniNavigate()
+    this.initialize()
   }
 
   private resolvePath(fullPath: string) {
@@ -89,61 +88,124 @@ class UniRouter {
     return pageRoute
   }
 
-  /**
-   * 增强路由导航
-   */
-  private enhancementUniNavigate() {
-    const getRoute = this.getRoute.bind(this)
-    const pages = this.pages
+  private initialize() {
+    const homePageRoute = this.homePageRoute
+    const beforeEachInterceptors = this.beforeEachInterceptors
+    const afterEachInterceptors = this.afterEachInterceptors
+
+    const uni_navigateTo = uni.navigateTo.bind(uni)
+    const uni_redirectTo = uni.redirectTo.bind(uni)
+    const uni_reLaunch = uni.reLaunch.bind(uni)
+    const uni_switchTab = uni.switchTab.bind(uni)
+    const uni_navigateBack = uni.navigateBack.bind(uni)
 
     // navigateTo 与 redirectTo 不能跳转到 tabBar 页面只能使用 switchTab 跳转
     // 而 switchTab 也不能跳转到非 tabBar 页面
     // 拦截路由后，可能造成目标页面与跳转方法不符的情况，做一个兼容性增强
+    // 而拦截路由需要在实际调用之前拦截，因此需要使用代理模式
 
-    const uni_navigateTo = uni.navigateTo
-    const uni_redirectTo = uni.redirectTo
-    const uni_reLaunch = uni.reLaunch
-    const uni_switchTab = uni.switchTab
+    const resolveRoute = (fullPath: string) => {
+      const to = this.getRoute(fullPath)
 
-    uni.navigateTo = function <
-      T extends UniNamespace.NavigateToOptions = UniNamespace.NavigateToOptions,
-    >(options: T) {
-      const { url } = options
-      const route = getRoute(url as string)
-      if (route.isTabBar) {
-        return uni_switchTab(options)
+      const currentPages = getCurrentPages<PageInstance>()
+      const currentPage = currentPages[currentPages.length - 1]
+      const from = this.getRoute(currentPage.$page.fullPath)
+
+      return {
+        currentPages,
+        currentPage,
+        from,
+        to,
       }
-      return uni_navigateTo(options)
     }
 
-    uni.redirectTo = function <
-      T extends UniNamespace.RedirectToOptions = UniNamespace.RedirectToOptions,
-    >(options: T) {
-      const { url } = options
-      const route = getRoute(url as string)
-      if (route.isTabBar) {
-        return uni_switchTab(options)
+    const beforeEach = async (to: UniRoute, from: UniRoute) => {
+      for (const interceptor of beforeEachInterceptors) {
+        await interceptor(to, from)
       }
-      return uni_redirectTo(options)
     }
 
-    uni.switchTab = function <
-      T extends UniNamespace.SwitchTabOptions = UniNamespace.SwitchTabOptions,
-    >(options: T) {
-      const { url } = options
-      const route = getRoute(url as string)
-      if (route.isTabBar) {
-        return uni_switchTab(options)
+    const afterEach = async (to: UniRoute, from: UniRoute) => {
+      for (const interceptor of afterEachInterceptors) {
+        await interceptor(to, from)
       }
-      return uni_navigateTo(options)
     }
+
+    interface UniNavigateOptions {
+      url: string | string.PageURIString
+      fail?: (...args: any[]) => void
+      success?: (...args: any[]) => void
+      complete?: (...args: any[]) => void
+    }
+
+    const createInterceptor = <T extends UniNavigateOptions>(
+      callback: (options: T) => UniNamespace.PromisifySuccessResult<T, T>,
+    ) => {
+      return function (options: T) {
+        const { url, success } = options
+        const { to, from } = resolveRoute(url.toString())
+
+        if (typeof success === 'function') {
+          Object.assign(options, {
+            success: async (res: any) => {
+              await afterEach(to, from)
+              success(res)
+            },
+          })
+        }
+
+        const result = beforeEach(to, from).then(() => {
+          options.url = to.fullPath
+          return callback(options)
+        })
+
+        if (typeof success === 'function') {
+          return void 0
+        }
+        return result.then((result) => {
+          return afterEach(to, from).then(() => result)
+        })
+      }
+    }
+
+    const commonOptionsFields = ['url', 'success', 'fail', 'complete'] as const
+
+    uni.navigateTo = createInterceptor<UniNamespace.NavigateToOptions>(
+      (options) => {
+        const route = this.getRoute(options.url as string)
+        return route.isTabBar
+          ? uni_switchTab(_.pick(options, commonOptionsFields))
+          : uni_navigateTo(options)
+      },
+    )
+    uni.redirectTo = createInterceptor<UniNamespace.RedirectToOptions>(
+      (options) => {
+        const route = this.getRoute(options.url as string)
+        return route.isTabBar
+          ? uni_switchTab(_.pick(options, commonOptionsFields))
+          : uni_redirectTo(_.pick(options, commonOptionsFields))
+      },
+    )
+    uni.reLaunch = createInterceptor<UniNamespace.ReLaunchOptions>(
+      (options) => {
+        const route = this.getRoute(options.url as string)
+        return route.isTabBar
+          ? uni_switchTab(_.pick(options, commonOptionsFields))
+          : uni_reLaunch(_.pick(options, commonOptionsFields))
+      },
+    )
+    uni.switchTab = createInterceptor<UniNamespace.SwitchTabOptions>(
+      (options) => {
+        const route = this.getRoute(options.url as string)
+        return route.isTabBar
+          ? uni_switchTab(_.pick(options, commonOptionsFields))
+          : uni_navigateTo(_.pick(options, commonOptionsFields))
+      },
+    )
 
     // 某些特殊情况下，无法返回上一个页面
     // 比如分享详情页面，用户打开后无其他页面栈信息，导致使用 uni.navigateBack 失败
     // 模仿原生返回按钮功能，实现当无返回页面栈信息时，reLaunch 到首页
-    const uni_navigateBack = uni.navigateBack
-    const homePagePath = pages[0]?.path ?? ''
-
     uni.navigateBack = function <
       T extends
         UniNamespace.NavigateBackOptions = UniNamespace.NavigateBackOptions,
@@ -152,13 +214,7 @@ class UniRouter {
       if (currentPages.length > 1) {
         return uni_navigateBack(options)
       }
-
-      return uni_reLaunch({
-        url: `/${homePagePath}`,
-        success: options.success,
-        fail: options.fail,
-        complete: options.complete,
-      })
+      return uni_reLaunch({ ...options, url: `/${homePageRoute}` })
     }
   }
 
@@ -172,63 +228,6 @@ class UniRouter {
 
   afterEach(interceptor: UniRouterEachInterceptor) {
     this.afterEachInterceptors.push(interceptor)
-  }
-
-  /**
-   * 拦截路由导航
-   */
-  private interceptedUniNavigate() {
-    const getRoute = this.getRoute.bind(this)
-    const beforeEachInterceptors = this.beforeEachInterceptors
-    const afterEachInterceptors = this.afterEachInterceptors
-
-    const uniNavigateMethods = [
-      'navigateTo',
-      'redirectTo',
-      'reLaunch',
-      'switchTab',
-    ]
-
-    const createInterceptor = () => {
-      interface InvokeCache {
-        to: UniRoute
-        from: UniRoute
-      }
-
-      const invokeCache: { value?: InvokeCache } = {}
-
-      const options: UniNamespace.InterceptorOptions = {
-        invoke(result) {
-          const to = getRoute(result.url)
-
-          const currentPages = getCurrentPages<PageInstance>()
-          const currentPage = currentPages[currentPages.length - 1]
-          const from = getRoute(currentPage.$page.fullPath)
-
-          for (const interceptor of beforeEachInterceptors) {
-            interceptor(to, from)
-          }
-          result.url = to.fullPath
-
-          invokeCache.value = { to, from }
-        },
-        success() {
-          const { to, from } = invokeCache.value!
-          for (const interceptor of afterEachInterceptors) {
-            interceptor(to, from)
-          }
-        },
-        complete() {
-          invokeCache.value = undefined
-        },
-      }
-
-      return options
-    }
-
-    for (const method of uniNavigateMethods) {
-      uni.addInterceptor(method, createInterceptor())
-    }
   }
 }
 
@@ -269,4 +268,42 @@ class Router {
  */
 export function createRouter() {
   return new Router()
+}
+
+export function useRoute() {
+  const pages = computed(() => {
+    return instance.value.pages
+  })
+
+  const tabBar = computed(() => {
+    return instance.value.tabBar
+  })
+
+  const uniIdRouter = computed(() => {
+    return instance.value.uniIdRouter
+  })
+
+  const homePageRoute = computed(() => {
+    return instance.value.homePageRoute
+  })
+
+  const loginPageRoute = computed(() => {
+    return instance.value.loginPageRoute
+  })
+
+  const route = computed(() => {
+    const currentPages = getCurrentPages<PageInstance>()
+    const currentPage = currentPages[currentPages.length - 1]
+    const fullPath = currentPage.$page?.fullPath ?? `/${currentPage.route}`
+    return instance.value.getRoute(fullPath)
+  })
+
+  return {
+    route,
+    pages,
+    tabBar,
+    uniIdRouter,
+    homePageRoute,
+    loginPageRoute,
+  }
 }
