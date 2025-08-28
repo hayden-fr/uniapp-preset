@@ -1,17 +1,27 @@
 import appPagesConfig from '@/pages.json'
 
-interface Route extends Omit<UniPage, 'path'> {
-  isTabBar: boolean
-  fullPath: string
-  route: string
-  path: string
+declare global {
+  interface UniRoute extends Omit<Required<UniPage>, 'path'> {
+    isTabBar: boolean
+    fullPath: string
+    route: string
+    path: string
+  }
 }
 
 interface UniRouterEachInterceptor {
-  (to: Route, from: Route): void
+  (to: UniRoute, from: UniRoute): void
+}
+
+interface PageInstance {
+  $page: {
+    fullPath: string
+  }
 }
 
 class UniRouter {
+  readonly globalStyle: Readonly<UniPageStyle>
+
   readonly pages: readonly UniPage[]
 
   readonly tabBar?: UniTabBar
@@ -25,6 +35,7 @@ class UniRouter {
   readonly loginPageRoute: string | undefined
 
   constructor(appConfig: UniAppPagesConfig) {
+    this.globalStyle = Object.freeze(appPagesConfig.globalStyle ?? {})
     this.pages = Object.freeze(appConfig.pages ?? [])
     this.tabBar = Object.freeze(appConfig.tabBar)
     this.uniIdRouter = Object.freeze(appConfig.uniIdRouter)
@@ -48,7 +59,7 @@ class UniRouter {
     const path = fullPath.split('?')[0]
     const route = path.replace(/^\//, '')
 
-    // 首页的兼容路由地址
+    // 修复 h5 首页的兼容路由地址
     if (route === '') {
       const route = this.homePageRoute
       return { route, path, fullPath }
@@ -56,7 +67,8 @@ class UniRouter {
     return { route, path, fullPath }
   }
 
-  getRoute(fullPath: string) {
+  getRoute(routePath: string | string.PageURIString) {
+    const fullPath = routePath.toString()
     const { route, path } = this.resolvePath(fullPath)
     const page = this.pagesMap[route]
 
@@ -66,13 +78,13 @@ class UniRouter {
 
     const needLogin = page?.needLogin ?? needLoginPaths.includes(route)
 
-    const pageRoute: Route = {
+    const pageRoute: UniRoute = {
       path: path,
       route: route,
       fullPath: fullPath,
       needLogin: needLogin ?? false,
       isTabBar: tabBarRoutes.includes(route),
-      style: page?.style,
+      style: Object.assign({}, this.globalStyle, page?.style),
     }
     return pageRoute
   }
@@ -179,8 +191,8 @@ class UniRouter {
 
     const createInterceptor = () => {
       interface InvokeCache {
-        to: Route
-        from: Route
+        to: UniRoute
+        from: UniRoute
       }
 
       const invokeCache: { value?: InvokeCache } = {}
@@ -188,12 +200,6 @@ class UniRouter {
       const options: UniNamespace.InterceptorOptions = {
         invoke(result) {
           const to = getRoute(result.url)
-
-          interface PageInstance {
-            $page: {
-              fullPath: string
-            }
-          }
 
           const currentPages = getCurrentPages<PageInstance>()
           const currentPage = currentPages[currentPages.length - 1]
@@ -230,7 +236,10 @@ const instance = shallowRef({} as UniRouter)
 
 declare module 'vue' {
   interface ComponentCustomProperties {
-    $uniRouter: UniRouter
+    /**
+     * 增强的路由实列，与 web 端的路由实列做区分
+     */
+    $$router: UniRouter
   }
 }
 
@@ -250,7 +259,7 @@ class Router {
     if (afterEach) {
       instance.value.afterEach(afterEach)
     }
-    app.config.globalProperties.$uniRouter = instance.value
+    app.config.globalProperties.$$router = instance.value
   }
 }
 
