@@ -1,7 +1,7 @@
 type AccessToken = string | undefined | null
 
 interface UniAccessConfig {
-  initialAccessToken?: () => AccessToken
+  initialAccessToken?: () => AccessToken | Promise<AccessToken>
   onChange?: (accessToken: AccessToken) => void
 }
 
@@ -9,9 +9,13 @@ class UniAccess {
   accessToken: AccessToken
 
   constructor(options: UniAccessConfig = {}) {
-    this.accessToken = options.initialAccessToken?.()
     this.onUpdate = options.onChange?.bind(this)
+    this.init = async () => {
+      this.accessToken = await options.initialAccessToken?.()
+    }
   }
+
+  async init() {}
 
   private onUpdate: UniAccessConfig['onChange']
 
@@ -41,6 +45,10 @@ class Auth {
       },
       enumerable: true,
       configurable: false,
+    })
+
+    app.config.globalProperties.$init.register(async () => {
+      await instance.value.init()
     })
   }
 }

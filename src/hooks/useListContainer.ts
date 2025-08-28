@@ -56,7 +56,11 @@ export const useListContainer = <
   const noMoreTriggered = ref(false)
   const scrollTop = ref(0)
 
+  const { init } = useInit()
+
   const refresh = async (e?: EventHandle) => {
+    await init()
+
     try {
       if (refresherTriggered.value) return
 
@@ -95,6 +99,8 @@ export const useListContainer = <
   }
 
   const loadMore = async () => {
+    await init()
+
     try {
       if (loadMoreTriggered.value) return
       if (noMoreTriggered.value) return

@@ -3,6 +3,7 @@ import { createSSRApp } from 'vue'
 import App from './App.vue'
 import * as Auth from './plugins/auth'
 import * as Cache from './plugins/cache'
+import * as Initialization from './plugins/init'
 import * as Logging from './plugins/logging'
 import * as Request from './plugins/request'
 import * as Router from './plugins/router'
@@ -18,6 +19,8 @@ export function createApp() {
   app.use(Cache.createCache())
 
   app.use(Logging.createLogging())
+
+  app.use(Initialization.createInit())
 
   app.use(Auth.createAuth(), {
     initialAccessToken() {
@@ -79,6 +82,8 @@ export function createApp() {
       }
     },
   })
+
+  app.config.globalProperties.$init()
 
   return {
     app,
