@@ -1,0 +1,61 @@
+type AccessToken = string | undefined | null
+
+interface UniAccessConfig {
+  initialAccessToken?: () => AccessToken
+  onChange?: (accessToken: AccessToken) => void
+}
+
+class UniAccess {
+  accessToken: AccessToken
+
+  constructor(options: UniAccessConfig = {}) {
+    this.accessToken = options.initialAccessToken?.()
+    this.onUpdate = options.onChange?.bind(this)
+  }
+
+  private onUpdate: UniAccessConfig['onChange']
+
+  update(accessToken: AccessToken) {
+    this.accessToken = accessToken
+    this.onUpdate?.(accessToken)
+  }
+}
+
+const instance = shallowRef({} as UniAccess)
+
+type AuthOptions = UniAccessConfig & {}
+
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    readonly $accessToken: AccessToken
+  }
+}
+
+class Auth {
+  install(app: VueApp, options: AuthOptions = {}) {
+    instance.value = new UniAccess(options)
+
+    Object.defineProperty(app.config.globalProperties, '$accessToken', {
+      get() {
+        return instance.value.accessToken
+      },
+      enumerable: true,
+      configurable: false,
+    })
+  }
+}
+
+export function createAuth() {
+  return new Auth()
+}
+
+export function useAuth() {
+  const accessToken = computed(() => instance.value.accessToken)
+
+  return {
+    accessToken: accessToken,
+    update: (accessToken: AccessToken) => {
+      instance.value.update(accessToken)
+    },
+  }
+}

@@ -1,10 +1,15 @@
 import * as Pinia from 'pinia'
 import { createSSRApp } from 'vue'
 import App from './App.vue'
+import * as Auth from './plugins/auth'
 import * as Cache from './plugins/cache'
 import * as Logging from './plugins/logging'
 import * as Request from './plugins/request'
 import * as Router from './plugins/router'
+
+const config = {
+  accessTokenCacheName: 'access_token',
+}
 
 export function createApp() {
   const app = createSSRApp(App)
@@ -14,12 +19,39 @@ export function createApp() {
 
   app.use(Logging.createLogging())
 
+  app.use(Auth.createAuth(), {
+    initialAccessToken() {
+      const $cache = app.config.globalProperties.$cache
+
+      // 从本地缓存中获取 accessToken
+      const accessToken = $cache.get<string>(config.accessTokenCacheName)
+      return accessToken
+    },
+    onChange(accessToken) {
+      const $cache = app.config.globalProperties.$cache
+      $cache.set(config.accessTokenCacheName, accessToken)
+
+      const $$router = app.config.globalProperties.$$router
+      const { loginPageRoute } = $$router
+
+      if (!accessToken) {
+        uni.reLaunch({
+          url: `/${loginPageRoute}`,
+        })
+      }
+    },
+  })
+
   app.use(Request.createRequest(), {
     baseURL: import.meta.env.APP_BASE_URL,
     interceptors: {
       request(options) {
-        // 修改请求参数
-        // 例如添加 Authorization
+        const accessToken = app.config.globalProperties.$accessToken
+
+        if (accessToken) {
+          options.header['Authorization'] = `Bearer ${accessToken}`
+        }
+
         return options
       },
       response(response) {
@@ -36,7 +68,17 @@ export function createApp() {
     },
   })
 
-  app.use(Router.createRouter())
+  app.use(Router.createRouter(), {
+    beforeEach(to) {
+      const accessToken = app.config.globalProperties.$accessToken
+      const $$router = app.config.globalProperties.$$router
+      const { loginPageRoute } = $$router
+
+      if (to.needLogin && !accessToken) {
+        to.fullPath = `/${loginPageRoute}?redirect=${encodeURIComponent(to.fullPath)}`
+      }
+    },
+  })
 
   return {
     app,
