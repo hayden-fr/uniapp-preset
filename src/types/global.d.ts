@@ -35,7 +35,7 @@ declare global {
     styles?: Semantic<FormItemSemanticDOM, StyleValue>
   }
 
-  type FormItemSemanticDOM = 'item' | 'label' | 'input'
+  type FormItemSemanticDOM = 'item' | 'label' | 'required' | 'input'
 
   type FormItem<T extends Record<string> = any> = BaseFormItem<T> &
     (

@@ -14,6 +14,8 @@
         <view
           v-if="item.required ?? item.rules?.some((rule) => rule.required)"
           class="absolute left-1 text-red-500"
+          :class="[classNames?.required, item.classNames?.required]"
+          :style="[styles?.required, item.styles?.required]"
         >
           *
         </view>
