@@ -59,8 +59,9 @@
       <view
         v-if="isCustomTabbar || !route.isTabBar"
         role="safe-bottom"
-        class="w-full bg-white"
-        :style="{ height: safeBottomHeight + 'px' }"
+        class="w-full"
+        :class="[classNames?.safeBottom]"
+        :style="[{ height: safeBottomHeight + 'px' }, styles?.safeBottom]"
       ></view>
     </view>
 
@@ -79,7 +80,7 @@ interface Props {
   styles?: Semantic<SemanticDOM, StyleValue>
 }
 
-type SemanticDOM = 'root' | 'content'
+type SemanticDOM = 'root' | 'content' | 'safeBottom'
 
 defineProps<Props>()
 
