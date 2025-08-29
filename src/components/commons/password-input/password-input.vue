@@ -5,6 +5,7 @@
       v-else
       :type="checkPassword ? 'text' : 'password'"
       :value="modelValue"
+      :password="!checkPassword"
       @input="handleChange"
       class="flex-1"
       :placeholder="placeholder"
