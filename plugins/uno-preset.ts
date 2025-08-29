@@ -226,6 +226,41 @@ const presetStylingBasedOnParentState = definePreset(() => {
   }
 })
 
+const presetLegacyCompact = definePreset(() => {
+  return {
+    name: 'unocss-preset-applet:legacy-compact',
+    postprocess: [
+      (util) => {
+        for (const entry of util.entries) {
+          let value = entry[1]
+          if (typeof value !== 'string') {
+            return
+          }
+
+          // 微信小程序不支持颜色函数的空白分隔符
+          value = value.replace(
+            /((?:rgb|hsl)a?)\(([^)]+)\)/g,
+            (_, fn: string, v: string) => {
+              const [rgb, alpha] = v.split(/\//g).map((i) => i.trim())
+              if (alpha && !fn.endsWith('a')) fn += 'a'
+
+              const parts = rgb.split(/,?\s+/).map((i) => i.trim())
+              if (alpha) parts.push(alpha)
+
+              return `${fn}(${parts.filter(Boolean).join(', ')})`
+            },
+          )
+
+          // 微信小程序不支持 oklch 和 oklab
+          value = value.replace(/\s*in (oklch|oklab)/g, '')
+
+          entry[1] = value
+        }
+      },
+    ],
+  }
+})
+
 const presetApplet = definePreset<PresetMiniTheme>(() => {
   return {
     ...mergeConfigs([
@@ -233,6 +268,7 @@ const presetApplet = definePreset<PresetMiniTheme>(() => {
       presetConditionCompilation(),
       presetStylingBasedOnParentState(),
       presetTransformInvalidCharacter(),
+      presetLegacyCompact(),
     ]),
     name: 'unocss-preset-applet',
   }
