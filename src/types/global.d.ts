@@ -12,20 +12,25 @@ declare global {
   type Semantic<S, V> = Partial<Record<S, V>>
   type RequiredSemantic<S, V> = Record<S, V>
 
-  interface RuleItem<T = any> {
+  interface FormRuleItem<T = any> {
+    len?: number
     min?: number
     max?: number
     required?: boolean
     message?: string
     pattern?: RegExp
     trigger?: string
-    validator?: (rule: RuleItem<T>, value: T) => void | Promise<void>
+    validator?: (
+      rule: FormRuleItem<T>,
+      value: T,
+      throwError: (message: string) => void,
+    ) => void | Promise<void>
   }
 
   type BaseFormItem<T extends Record<string> = any> = {
     field: keyof T | `_${string}`
     label?: string
-    rules?: RuleItem[]
+    rules?: FormRuleItem[]
     required?: boolean
     disabled?: boolean
     labelPosition?: 'left' | 'top' | false
