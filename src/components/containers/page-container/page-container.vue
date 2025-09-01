@@ -120,7 +120,7 @@ const backBtnImage = computed(() => {
 })
 
 const showBackBtn = computed(() => {
-  return !route.value.isTabBar
+  return !(route.value.isHomePage || route.value.isTabBar)
 })
 
 const goBack = () => {

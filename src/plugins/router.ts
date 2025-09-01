@@ -3,6 +3,8 @@ import appPagesConfig from '@/pages.json'
 declare global {
   interface UniRoute extends Omit<Required<UniPage>, 'path'> {
     isTabBar: boolean
+    isHomePage: boolean
+    isLoginPage: boolean
     fullPath: string
     route: string
     path: string
@@ -76,14 +78,18 @@ class UniRouter {
     const needLoginPaths = this.uniIdRouter?.needLogin ?? []
 
     const needLogin = page?.needLogin ?? needLoginPaths.includes(route)
+    const homePageRoute = this.homePageRoute
+    const loginPageRoute = this.loginPageRoute
 
     const pageRoute: UniRoute = {
       path: path,
       route: route,
       fullPath: fullPath,
       needLogin: needLogin ?? false,
-      isTabBar: tabBarRoutes.includes(route),
       style: Object.assign({}, this.globalStyle, page?.style),
+      isTabBar: tabBarRoutes.includes(route),
+      isHomePage: route === homePageRoute,
+      isLoginPage: route === loginPageRoute,
     }
     return pageRoute
   }
