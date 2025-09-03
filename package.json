@@ -91,5 +91,10 @@
     "*.json": [
       "prettier --write"
     ]
+  },
+  "pnpm": {
+    "overrides": {
+      "@vue/server-renderer": "^3.4.21"
+    }
   }
 }
