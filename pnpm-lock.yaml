@@ -132,6 +132,9 @@ importers:
       typescript:
         specifier: ^5.8.2
         version: 5.8.3
+      typescript-builtins-extended:
+        specifier: ^0.0.1
+        version: 0.0.1
       typescript-eslint:
         specifier: ^8.29.0
         version: 8.32.0(eslint@9.26.0(jiti@2.4.2))(typescript@5.8.3)
@@ -4077,6 +4080,9 @@ packages:
 
   typedarray-to-buffer@3.1.5:
     resolution: {integrity: sha512-zdu8XMNEDepKKR+XYOXAVPtWui0ly0NtohUscw+UmaHiAWT8hrV1rr//H6V+0DvJ3OQ19S979M0laLfX8rm82Q==}
+
+  typescript-builtins-extended@0.0.1:
+    resolution: {integrity: sha512-bdh4UCT1Z0OW0Go9RlMjrxultkYlR3H+Wzqa3g2UGHQexN2MebblQKz8LuYEgd2DCFXVlw9qSQrzfurkaoNNgw==}
 
   typescript-eslint@8.32.0:
     resolution: {integrity: sha512-UMq2kxdXCzinFFPsXc9o2ozIpYCCOiEC46MG3yEh5Vipq6BO27otTtEBZA1fQ66DulEUgE97ucQ/3YY66CPg0A==}
@@ -9539,6 +9545,8 @@ snapshots:
   typedarray-to-buffer@3.1.5:
     dependencies:
       is-typedarray: 1.0.0
+
+  typescript-builtins-extended@0.0.1: {}
 
   typescript-eslint@8.32.0(eslint@9.26.0(jiti@2.4.2))(typescript@5.8.3):
     dependencies:

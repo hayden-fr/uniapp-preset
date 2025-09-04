@@ -1,3 +1,5 @@
+/// <reference types="typescript-builtins-extended" />
+
 export {}
 
 declare global {
