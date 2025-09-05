@@ -5,6 +5,7 @@ import { getUniHttpRequestInstance } from '@/plugins/request'
 export { useAuth } from '@/plugins/auth'
 export { useInit } from '@/plugins/init'
 export { useRoute } from '@/plugins/router'
+export { useTheme } from '@/plugins/theme'
 
 export const cache = getUniCacheInstance()
 export const logging = getUniLoggingInstance()

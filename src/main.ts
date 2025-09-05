@@ -7,6 +7,7 @@ import * as Initialization from './plugins/init'
 import * as Logging from './plugins/logging'
 import * as Request from './plugins/request'
 import * as Router from './plugins/router'
+import * as Theme from './plugins/theme'
 
 const config = {
   accessTokenCacheName: 'access_token',
@@ -82,6 +83,8 @@ export function createApp() {
       }
     },
   })
+
+  app.use(Theme.createTheme())
 
   app.config.globalProperties.$init()
 
