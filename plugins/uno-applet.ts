@@ -1,11 +1,10 @@
 import type { Plugin } from 'vite'
 
-export default function UnoCSSApplet(): Plugin[] {
+export function UnoCSSApplet(): Plugin[] {
   return [
     {
-      name: 'uno-css-applet:virtual-entry',
+      name: 'unocss-applet:virtual-entry',
       enforce: 'pre',
-
       transform(code, id) {
         // 动态引入 unocss 占位符
         // 不能直接在 src/main.ts 中引入
@@ -16,29 +15,20 @@ export default function UnoCSSApplet(): Plugin[] {
       },
     },
     {
-      name: 'uno-css-applet:css-to-wxss',
+      // UnoCSS 升级到 66.1.0-beta.11 后，不能正常转化小程序平台的 css 文件后缀
+      // 官方已经有了解决方案 @see https://github.com/dcloudio/uni-app/pull/5605
+      // 但是目前似乎并未发版，根据解决方案做以下适配以实现解决方案
+      name: 'unocss-applet:adapt-higher-version',
       enforce: 'post',
-
-      generateBundle(_, bundle) {
-        // 解决加入 unocss 后，uniapp 无法生成 .wxss 的问题
-        const platform = process.env.UNI_PLATFORM
-        const specialCssSuffix: Record<string, string> = {
-          'mp-alipay': 'acss',
-          'mp-lark': 'ttss',
-          'mp-qq': 'qss',
-          'mp-toutiao': 'ttss',
-          'mp-weixin': 'wxss',
-        }
-        const specialPlatform = Object.keys(specialCssSuffix).join('|')
-        const platformRegexp = new RegExp(`(${specialPlatform})`, 'i')
-        if (platform && platformRegexp.test(platform)) {
-          for (const chunk in bundle) {
-            if (chunk.endsWith('.css')) {
-              const suffix = `.${specialCssSuffix[platform]}`
-              const cssName = chunk.replace('.css', suffix)
-              bundle[cssName] = bundle[chunk]
-              bundle[cssName].fileName = cssName
-              delete bundle[chunk]
+      configResolved(config) {
+        for (const plugin of config.plugins) {
+          if (plugin.name === 'uni:adjust-css-extname') {
+            if (typeof plugin.generateBundle === 'function') {
+              const handler = plugin.generateBundle
+              plugin.generateBundle = {
+                order: 'post',
+                handler: handler,
+              }
             }
           }
         }
