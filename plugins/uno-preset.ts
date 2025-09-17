@@ -101,8 +101,9 @@ class AppletInvalidCharacterContext {
   filterInValidCharacter(selectors: ArrayLike<string> | Set<string>) {
     const escapeInvalidCharacters = escapeRegExp(this.invalidCharacters)
     const filterPattern = new RegExp(`[${escapeInvalidCharacters}]`)
+    const matchWholeWord = new RegExp(`^[${escapeInvalidCharacters}]$`)
     return Array.from(selectors).filter((selector) => {
-      return filterPattern.test(selector)
+      return filterPattern.test(selector) && !matchWholeWord.test(selector)
     })
   }
 
