@@ -15,7 +15,7 @@ const appletPreflights = definePreset<object, PresetWindTheme>(() => {
           type CSSEntry = [string, CSSProperties]
           type CSSEntires = CSSEntry[]
 
-          const getColor = (color: string) => {
+          const getColor = (color: string, alias: string = 'DEFAULT') => {
             const colorValue = theme.colors?.[color]
 
             type Colors = typeof colorValue
@@ -23,7 +23,7 @@ const appletPreflights = definePreset<object, PresetWindTheme>(() => {
               if (typeof value === 'string') {
                 return value
               }
-              return value ? resolveColors(value[700]) : undefined
+              return value ? resolveColors(value[alias]) : undefined
             }
             return resolveColors(colorValue)
           }
@@ -35,7 +35,7 @@ const appletPreflights = definePreset<object, PresetWindTheme>(() => {
               {
                 'border-style': 'solid',
                 'border-width': '0',
-                'border-color': getColor('light') ?? '#e5e7eb',
+                'border-color': getColor('gray') ?? '#e5e7eb',
                 'box-sizing': 'border-box',
               },
             ],

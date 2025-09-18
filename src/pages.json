@@ -1,14 +1,23 @@
 {
   "pages": [
     {
-      "path": "pages/index/index",
-      "style": {
-        "navigationBarTitleText": "首页"
-      }
+      "path": "pages/index/index"
+    },
+    {
+      "path": "pages/demo/button"
     }
   ],
   "globalStyle": {
+    "navigationStyle": "custom",
+    "navigationBarTitleText": "UniApp",
     "navigationBarTextStyle": "black",
-    "navigationBarBackgroundColor": "#fff"
+    "navigationBarBackgroundColor": "#ffffff"
+  },
+  "easycom": {
+    "autoscan": false,
+    "custom": {
+      "^easycom-(.*)-container": "@/components/containers/$1-container/$1-container.vue",
+      "^easycom-(.*)": "@/components/$1/$1.vue"
+    }
   }
 }

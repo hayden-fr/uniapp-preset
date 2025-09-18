@@ -7,6 +7,9 @@
 export { }
 declare module 'vue' {
   export interface GlobalComponents {
-    WaterMark: (typeof import('../components/water-mark/water-mark.vue'))['default']
+    EasycomFormContainer: (typeof import('../components/containers/form-container/form-container.vue'))['default']
+    EasycomListContainer: (typeof import('../components/containers/list-container/list-container.vue'))['default']
+    EasycomPageContainer: (typeof import('../components/containers/page-container/page-container.vue'))['default']
+    EasycomButton: (typeof import('../components/button/button.vue'))['default']
   }
 }

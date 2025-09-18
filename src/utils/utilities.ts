@@ -36,3 +36,24 @@ export const toastWarning = async (msg: string) => {
     showCancel: false,
   })
 }
+
+export const loopClassNameValue = (
+  classes: ClassNameValue,
+  callback: (className: string) => string | undefined,
+): ClassNameValue => {
+  if (typeof classes === 'string') {
+    return callback(classes)
+  }
+  if (Array.isArray(classes)) {
+    return classes.map((value) => loopClassNameValue(value, callback))
+  }
+  if (!_.isNil(classes) && typeof classes === 'object') {
+    return Object.fromEntries(
+      Object.entries(classes).map(([key, value]) => [
+        loopClassNameValue(key, callback),
+        value,
+      ]),
+    )
+  }
+  return classes
+}
