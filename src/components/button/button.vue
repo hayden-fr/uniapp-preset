@@ -36,13 +36,8 @@ declare global {
   /**
    * 按钮变体类型
    */
-  type ButtonVariantType =
-    | 'outlined'
-    | 'dashed'
-    | 'solid'
-    | 'filled'
-    | 'text'
-    | 'link'
+  // prettier-ignore
+  type ButtonVariantType = 'outlined'| 'dashed'| 'solid'| 'filled'| 'text'| 'link'
   /**
    * 按钮尺寸
    */

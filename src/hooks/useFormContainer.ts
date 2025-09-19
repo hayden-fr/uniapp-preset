@@ -1,4 +1,4 @@
-interface FormContainerOptions<Data> {
+interface FormContainerOptions<Data extends AnyObject> {
   data: MaybeRefOrGetter<Data>
   items: MaybeRefOrGetter<FormItem<Data>[]>
 }
