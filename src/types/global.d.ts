@@ -8,6 +8,17 @@ declare global {
 }
 
 declare global {
+  /**
+   * 日志接口
+   */
+  interface LoggingInterface {
+    info: (...args: any[]) => void
+    warn: (...args: any[]) => void
+    error: (...args: any[]) => void
+    debug: (...args: any[]) => void
+    log: (...args: any[]) => void
+  }
+
   // prettier-ignore
   type ClassNameValue = false | null | undefined | string | Record<string, boolean> | Array<ClassNameValue>;
 

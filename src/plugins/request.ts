@@ -91,8 +91,14 @@ type QuickRequestOptions = Omit<UniHttpRequestOptions, 'method'>
 class UniHttpRequest {
   private racingRequestTask: RacingRequestTask
 
-  constructor(private config: Partial<UniHttpRequestOptions> = {}) {
+  private logging: LoggingInterface
+
+  constructor(
+    private config: Partial<UniHttpRequestOptions> = {},
+    logging?: LoggingInterface,
+  ) {
     this.racingRequestTask = new RacingRequestTask()
+    this.logging = logging ?? console
   }
 
   /**
@@ -143,7 +149,7 @@ class UniHttpRequest {
       return raceCondition
     }
 
-    console.warn(
+    this.logging.warn(
       `[UniHttpRequest] 竞态条件值类型错误，期待类型 string | false | undefined ，实际类型 %s ，跳过当前竞态条件`,
       typeof raceCondition,
     )
@@ -257,7 +263,10 @@ interface UniRequestOptions extends Omit<UniHttpRequestOptions, 'url'> {}
 
 class Request {
   install(app: VueApp, options: UniRequestOptions = {}) {
-    instance.value = new UniHttpRequest(options)
+    instance.value = new UniHttpRequest(
+      options,
+      app.config.globalProperties.$logging,
+    )
     app.config.globalProperties.$request = instance.value
   }
 }

@@ -27,7 +27,7 @@ class StackError extends Error {
 
 type LoggingType = 'info' | 'warn' | 'error' | 'debug' | 'log'
 
-class UniLogging {
+class UniLogging implements LoggingInterface {
   private printer(type: LoggingType, message?: any, ...optionalParams: any[]) {
     if (message instanceof Error) {
       message = new StackError(message)

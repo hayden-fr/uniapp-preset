@@ -12,7 +12,9 @@ class UniInitialization extends Function {
 
   promise: Promise<void>
 
-  constructor() {
+  private logging: LoggingInterface
+
+  constructor(logging?: LoggingInterface) {
     super('...args', `return this.init(...args)`)
 
     this.state = new UniInitializationState()
@@ -20,6 +22,8 @@ class UniInitialization extends Function {
     this.promise = new Promise((resolve) => {
       this.state.promiseResolve = resolve
     })
+
+    this.logging = logging ?? console
 
     const callable = () => {
       this.init()
@@ -35,7 +39,7 @@ class UniInitialization extends Function {
 
   private async init() {
     if (this.state.called) {
-      console.warn('[UniInitialization]', '请勿重复调用初始化方法')
+      this.logging.warn('[UniInitialization]', '请勿重复调用初始化方法')
       return
     }
     this.state.called = true
@@ -62,7 +66,7 @@ const instance = shallowRef({} as UniInitialization)
 
 class Initialization {
   install(app: VueApp) {
-    instance.value = new UniInitialization()
+    instance.value = new UniInitialization(app.config.globalProperties.$logging)
     Object.defineProperty(app.config.globalProperties, '$init', {
       get() {
         return instance.value
