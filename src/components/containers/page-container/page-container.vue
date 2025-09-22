@@ -74,9 +74,21 @@ import customTabbar from './custom-tabbar.vue'
 import waterMark from './water-mark.vue'
 
 interface Props {
+  /**
+   * 是否开启滚动
+   */
   scrollable?: boolean
+  /**
+   * 是否开启下拉刷新
+   */
   pullToRefresh?: boolean
+  /**
+   * 语义化结构 class
+   */
   classNames?: Semantic<SemanticDOM, ClassNameValue>
+  /**
+   * 语义化结构 style
+   */
   styles?: Semantic<SemanticDOM, StyleValue>
 }
 
