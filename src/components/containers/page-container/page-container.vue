@@ -84,28 +84,13 @@ type SemanticDOM = 'root' | 'content' | 'safeBottom'
 
 defineProps<Props>()
 
-const { route, tabBar } = useRoute()
+const { statusBarHeight, navigationBarHeight, safeBottomHeight } =
+  usePageContainer()
 
-const systemInfo = computed(() => {
-  return uni.getSystemInfoSync()
-})
+const { route, tabBar } = useRoute()
 
 const isCustomNavigationBar = computed(() => {
   return route.value.style.navigationStyle === 'custom'
-})
-
-const statusBarHeight = computed(() => {
-  const statusBarHeight = systemInfo.value.statusBarHeight
-  return statusBarHeight ?? 0
-})
-
-const navigationBarHeight = computed(() => {
-  return 44
-})
-
-const safeBottomHeight = computed(() => {
-  const safeArea = systemInfo.value.safeAreaInsets
-  return safeArea?.bottom ?? 0
 })
 
 const backBtnImage = computed(() => {
