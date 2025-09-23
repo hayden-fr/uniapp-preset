@@ -39,10 +39,6 @@ declare global {
   // prettier-ignore
   type ButtonVariantType = 'outlined'| 'dashed'| 'solid'| 'filled'| 'text'| 'link'
   /**
-   * 按钮尺寸
-   */
-  type ButtonSizeType = 'mini' | 'small' | 'medium' | 'large'
-  /**
    * 按钮形状
    */
   type ButtonShapeType = 'default' | 'circle' | 'round'
@@ -90,7 +86,7 @@ interface Props {
   /**
    * 设置按钮大小
    */
-  size?: ButtonSizeType
+  size?: ComponentSize
   /**
    * 设置按钮形状
    */

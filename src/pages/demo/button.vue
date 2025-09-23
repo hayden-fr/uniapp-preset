@@ -311,9 +311,9 @@ const enterLoading = (index: number) => {
   }, 5000)
 }
 
-const sizes: ButtonSizeType[] = ['large', 'medium', 'small', 'mini']
-const size = ref<ButtonSizeType>('large')
-const handleSizeChange = (value: ButtonSizeType) => {
+const sizes: ComponentSize[] = ['large', 'medium', 'small', 'mini']
+const size = ref<ComponentSize>('large')
+const handleSizeChange = (value: ComponentSize) => {
   size.value = value
 }
 </script>

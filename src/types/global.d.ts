@@ -61,4 +61,9 @@ declare global {
    * 必填语义化对象
    */
   type RequiredSemantic<S, V> = Record<S, V>
+
+  /**
+   * 组件尺寸
+   */
+  type ComponentSize = 'mini' | 'small' | 'medium' | 'large'
 }
