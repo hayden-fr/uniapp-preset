@@ -98,6 +98,7 @@
             v-model="formData[item.field]"
           ></text-input>
         </view>
+        <slot :name="item.field.toString() + '_suffix'"></slot>
       </view>
     </view>
   </view>
