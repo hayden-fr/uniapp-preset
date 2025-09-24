@@ -221,7 +221,7 @@ import passwordInput from '@/components/commons/password-input/password-input.vu
 import textInput from '@/components/commons/text-input/text-input.vue'
 import textareaInput from '@/components/commons/textarea-input/textarea-input.vue'
 
-const formData = defineModel<Data>({ default: () => ({}) })
+const formData = defineModel<Data>({ default: reactive({}) })
 
 interface Props {
   /**
