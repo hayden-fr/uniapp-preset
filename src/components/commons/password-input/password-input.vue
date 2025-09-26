@@ -1,5 +1,6 @@
 <template>
-  <view class="flex items-center justify-end gap-2">
+  <view class="flex w-full items-center gap-2">
+    <view v-if="icon" :class="[icon]"></view>
     <text v-if="readonly">{{ modelValue }}</text>
     <input
       v-else
@@ -22,10 +23,29 @@
 
 <script setup lang="ts">
 interface Props {
+  /**
+   * 是否只读
+   */
   readonly?: boolean
+  /**
+   * 是否禁用
+   */
   disabled?: boolean
+  /**
+   * 提示文字
+   */
   placeholder?: string
+  /**
+   * 图标
+   */
+  icon?: string
+  /**
+   * 是否显示密码可见
+   */
   showVisible?: boolean
+  /**
+   * 值改变时回调
+   */
   onChange?: (val: string) => void
 }
 
