@@ -308,7 +308,7 @@ const buttonStyle = computed(() => {
 
 <style>
 button {
-  --uni-button-control-height: 46px;
+  --uni-button-control-height: 3rem;
   height: var(--uni-button-control-height);
   min-width: var(--uni-button-control-height);
 }
@@ -320,7 +320,7 @@ button:after {
 }
 
 button[size='mini'] {
-  --uni-button-control-height: 32px;
+  --uni-button-control-height: 2rem;
   display: block;
   line-height: 2.1;
   font-size: 15px;
@@ -328,14 +328,14 @@ button[size='mini'] {
 }
 
 button[size='small'] {
-  --uni-button-control-height: 36px;
+  --uni-button-control-height: 2.5rem;
   line-height: 2.4;
   font-size: 15px;
   padding: 0 0.84em;
 }
 
 button[size='large'] {
-  --uni-button-control-height: 54px;
+  --uni-button-control-height: 3.5rem;
   line-height: 2.6;
   font-size: 21px;
   padding: 0 1.24em;
