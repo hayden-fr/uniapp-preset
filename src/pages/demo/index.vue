@@ -1,5 +1,5 @@
 <template>
-  <easycom-page-container :class-names="{ root: 'p-4' }">
+  <easycom-page-container :class-names="{ content: 'gap-4 p-4' }">
     <easycom-button variant="filled" @click="go('/pages/demo/button')">
       按钮
     </easycom-button>
