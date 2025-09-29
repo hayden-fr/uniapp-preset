@@ -8,6 +8,7 @@
       :style="[styles?.item, item.styles?.item]"
     >
       <view
+        v-if="item.label !== false"
         class="border-light absolute left-0 flex h-12 w-full items-center px-4"
         :class="{ 'border-b': (item.labelPosition ?? labelPosition) === 'top' }"
       >
@@ -35,13 +36,19 @@
       </view>
 
       <view
-        v-if="(item.labelPosition ?? labelPosition) === 'top'"
+        v-if="
+          (item.labelPosition ?? labelPosition) === 'top' &&
+          item.label !== false
+        "
         class="h-12"
       ></view>
 
       <view class="flex min-h-12 w-full items-center gap-2">
         <view
-          v-if="(item.labelPosition ?? labelPosition) === 'left'"
+          v-if="
+            (item.labelPosition ?? labelPosition) === 'left' &&
+            item.label !== false
+          "
           class="min-w-16 shrink-0"
           :class="[classNames?.label, item.classNames?.label]"
           :style="[
@@ -115,9 +122,9 @@ type BaseFormItem<Data extends AnyObject = any> = {
    */
   field: keyof Data | `_${string}`
   /**
-   * 表单项标签
+   * 表单项标签，如果设置为 false，则不显示标签
    */
-  label?: string
+  label?: string | false
   /**
    * 表单项验证规则
    */
