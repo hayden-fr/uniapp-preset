@@ -1,9 +1,9 @@
 export const usePageContainer = () => {
-  const systemInfo = computed(() => {
-    return uni.getSystemInfoSync()
+  const windowInfo = computed(() => {
+    return uni.getWindowInfo()
   })
   const statusBarHeight = computed(() => {
-    const statusBarHeight = systemInfo.value.statusBarHeight
+    const statusBarHeight = windowInfo.value.statusBarHeight
     return statusBarHeight ?? 0
   })
 
@@ -16,7 +16,7 @@ export const usePageContainer = () => {
   })
 
   const safeBottomHeight = computed(() => {
-    const safeArea = systemInfo.value.safeAreaInsets
+    const safeArea = windowInfo.value.safeAreaInsets
     return safeArea?.bottom ?? 0
   })
 
