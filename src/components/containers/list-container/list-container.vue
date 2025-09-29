@@ -130,6 +130,8 @@ type SemanticDOM = 'root' | 'content' | 'item'
 
 withDefaults(defineProps<Props>(), {
   items: () => [],
+  lowerThreshold: 50,
+  refresherThreshold: 50,
   rowKey: 'id',
   refresherBackground: 'transparent',
   noMoreContent: '-- 没有更多了 --',
