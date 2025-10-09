@@ -56,6 +56,18 @@ declare global {
       | string
       | boolean
       | ((options: UniHttpRequestOptions) => string | boolean | undefined)
+    /**
+     * 日志输出实列
+     */
+    logging?: LoggingInterface
+    /**
+     * 初始化完成标识
+     */
+    init?: Promise<void>
+    /**
+     * 跳过初始化检查
+     */
+    skipInitialized?: boolean
   }
 
   /**
@@ -93,12 +105,12 @@ class UniHttpRequest {
 
   private logging: LoggingInterface
 
-  constructor(
-    private config: Partial<UniHttpRequestOptions> = {},
-    logging?: LoggingInterface,
-  ) {
+  private init: Promise<void>
+
+  constructor(private config: Partial<UniHttpRequestOptions> = {}) {
     this.racingRequestTask = new RacingRequestTask()
-    this.logging = logging ?? console
+    this.logging = config.logging ?? window.console
+    this.init = config.init ?? Promise.resolve()
   }
 
   /**
@@ -157,6 +169,10 @@ class UniHttpRequest {
   }
 
   private async httpRequest<T>(options: UniHttpRequestOptions) {
+    const skipInitialized = options.skipInitialized ?? false
+    if (!skipInitialized) {
+      await this.init
+    }
     const config = _.cloneDeep(this.config)
     const custom = _.cloneDeep(options)
     let requestOptions: UniHttpRequestOptions = _.merge({}, config, custom)
@@ -184,7 +200,7 @@ class UniHttpRequest {
     if (useMultipartFormData) {
       this.parseMultipartFormData(requestOptions)
     }
-    return new Promise((resolve, reject) => {
+    return new Promise<T>((resolve, reject) => {
       // 解析竞态条件
       const raceCondition =
         this.parseRaceCondition({
@@ -260,14 +276,20 @@ declare module 'vue' {
   }
 }
 
-interface UniRequestOptions extends Omit<UniHttpRequestOptions, 'url'> {}
+type ExcludeFormUniHttpRequestOptions<K extends keyof UniHttpRequestOptions> =
+  Omit<UniHttpRequestOptions, K>
+
+type UniRequestOptions = ExcludeFormUniHttpRequestOptions<
+  'url' | 'skipInitialized'
+>
 
 class Request {
   install(app: VueApp, options: UniRequestOptions = {}) {
-    instance.value = new UniHttpRequest(
-      options,
-      app.config.globalProperties.$logging,
-    )
+    instance.value = new UniHttpRequest({
+      ...options,
+      init: options.init ?? app.config.globalProperties.$init.promise,
+      logging: options.logging ?? app.config.globalProperties.$logging,
+    })
     app.config.globalProperties.$request = instance.value
   }
 }

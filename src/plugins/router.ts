@@ -269,6 +269,19 @@ class Router {
       instance.value.register('afterEach', afterEach)
     }
     app.config.globalProperties.$$router = instance.value
+
+    // 等待页面初始化完成
+    app.config.globalProperties.$init.register({
+      order: -1,
+      fn: async () => {
+        let currentPage: any
+        while (!currentPage) {
+          await new Promise((resolve) => setTimeout(resolve, 200))
+          const currentPages = getCurrentPages<PageInstance>()
+          currentPage = currentPages[currentPages.length - 1]
+        }
+      },
+    })
   }
 }
 

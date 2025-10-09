@@ -1,6 +1,9 @@
-interface Initialize {
-  (): void | Promise<void>
+type InitializeFn = () => void | Promise<void>
+type InitializeObject = {
+  order?: number
+  fn: InitializeFn
 }
+type Initialize = InitializeFn | InitializeObject
 
 class UniInitializationState {
   called: boolean = false
@@ -35,7 +38,7 @@ class UniInitialization extends Function {
     return callable as any
   }
 
-  private queue: Initialize[] = []
+  private queue: InitializeObject[] = []
 
   private async init() {
     if (this.state.called) {
@@ -43,8 +46,13 @@ class UniInitialization extends Function {
       return
     }
     this.state.called = true
+    const queue = this.queue.sort((a, b) => {
+      const beforeOrder = a.order ?? 0
+      const afterOrder = b.order ?? 0
+      return beforeOrder - afterOrder
+    })
 
-    for (const callback of this.queue) {
+    for (const { fn: callback } of queue) {
       await callback()
     }
 
@@ -52,7 +60,8 @@ class UniInitialization extends Function {
   }
 
   register(fn: Initialize) {
-    this.queue.push(fn)
+    const task = typeof fn === 'function' ? { fn } : fn
+    this.queue.push(task)
   }
 }
 

@@ -20,7 +20,12 @@ class UniAccess {
   constructor(options: UniAccessConfig = {}) {
     this.onUpdate = options.onChange?.bind(this)
     this.init = async () => {
+      const originalAccessToken = this.accessToken
       this.accessToken = await options.initialAccessToken?.()
+      // 使用非严格比较，undefined 与 null 视为相等
+      if (originalAccessToken != this.accessToken) {
+        this.update(this.accessToken)
+      }
     }
   }
 

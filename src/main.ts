@@ -24,11 +24,19 @@ export function createApp() {
   app.use(Initialization.createInit())
 
   app.use(Auth.createAuth(), {
-    initialAccessToken() {
-      const $cache = app.config.globalProperties.$cache
+    async initialAccessToken() {
+      let accessToken: string | undefined | null = null
 
       // 从本地缓存中获取 accessToken
-      const accessToken = $cache.get<string>(config.accessTokenCacheName)
+      const $cache = app.config.globalProperties.$cache
+      accessToken = $cache.get<string>(config.accessTokenCacheName)
+
+      // 从 url 中获取 accessToken
+      const { query } = uni.getLaunchOptionsSync()
+      if (query.access_token) {
+        accessToken = query.access_token
+      }
+
       return accessToken
     },
     onChange(accessToken) {
