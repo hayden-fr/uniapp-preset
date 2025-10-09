@@ -160,6 +160,7 @@ class UniHttpRequest {
     const config = _.cloneDeep(this.config)
     const custom = _.cloneDeep(options)
     let requestOptions: UniHttpRequestOptions = _.merge({}, config, custom)
+    requestOptions.header ??= {}
     if (config.interceptors?.request) {
       requestOptions = config.interceptors.request(requestOptions)
     }
