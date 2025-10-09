@@ -76,10 +76,13 @@ export function createApp() {
     beforeEach(to) {
       const accessToken = app.config.globalProperties.$accessToken
       const $$router = app.config.globalProperties.$$router
-      const { loginPageRoute } = $$router
+      const { homePageRoute, loginPageRoute } = $$router
 
       if (to.needLogin && !accessToken) {
         to.fullPath = `/${loginPageRoute}?redirect=${encodeURIComponent(to.fullPath)}`
+      }
+      if (to.isLoginPage && accessToken) {
+        to.fullPath = `/${homePageRoute}`
       }
     },
   })

@@ -15,6 +15,8 @@ interface UniRouterEachInterceptor {
   (to: UniRoute, from: UniRoute): void | Promise<void>
 }
 
+type UniRouterInterceptorAction = 'beforeEach' | 'afterEach'
+
 interface PageInstance {
   $page: {
     fullPath: string
@@ -36,7 +38,11 @@ class UniRouter {
 
   readonly loginPageRoute: string | undefined
 
-  constructor(appConfig: UniAppPagesConfig) {
+  readonly init: Promise<void>
+
+  constructor(options: { appConfig: UniAppPagesConfig; init: Promise<void> }) {
+    this.init = options.init
+    const appConfig = options.appConfig
     this.globalStyle = Object.freeze(appPagesConfig.globalStyle ?? {})
     this.pages = Object.freeze(appConfig.pages ?? [])
     this.tabBar = Object.freeze(appConfig.tabBar)
@@ -94,10 +100,26 @@ class UniRouter {
     return pageRoute
   }
 
+  interceptors: Record<UniRouterInterceptorAction, UniRouterEachInterceptor[]> =
+    {
+      beforeEach: [],
+      afterEach: [],
+    }
+
+  async apply(name: UniRouterInterceptorAction, to: UniRoute, from: UniRoute) {
+    const interceptors = this.interceptors[name]
+
+    for (const interceptor of interceptors) {
+      await interceptor(to, from)
+    }
+  }
+
+  register(name: UniRouterInterceptorAction, fn: UniRouterEachInterceptor) {
+    this.interceptors[name].push(fn)
+  }
+
   private initialize() {
     const homePageRoute = this.homePageRoute
-    const beforeEachInterceptors = this.beforeEachInterceptors
-    const afterEachInterceptors = this.afterEachInterceptors
 
     const uni_navigateTo = uni.navigateTo.bind(uni)
     const uni_redirectTo = uni.redirectTo.bind(uni)
@@ -125,17 +147,8 @@ class UniRouter {
       }
     }
 
-    const beforeEach = async (to: UniRoute, from: UniRoute) => {
-      for (const interceptor of beforeEachInterceptors) {
-        await interceptor(to, from)
-      }
-    }
-
-    const afterEach = async (to: UniRoute, from: UniRoute) => {
-      for (const interceptor of afterEachInterceptors) {
-        await interceptor(to, from)
-      }
-    }
+    const beforeEach = this.apply.bind(this, 'beforeEach')
+    const afterEach = this.apply.bind(this, 'afterEach')
 
     interface UniNavigateOptions {
       url: string | string.PageURIString
@@ -223,18 +236,6 @@ class UniRouter {
       return uni_reLaunch({ ...options, url: `/${homePageRoute}` })
     }
   }
-
-  private beforeEachInterceptors: UniRouterEachInterceptor[] = []
-
-  beforeEach(interceptor: UniRouterEachInterceptor) {
-    this.beforeEachInterceptors.push(interceptor)
-  }
-
-  private afterEachInterceptors: UniRouterEachInterceptor[] = []
-
-  afterEach(interceptor: UniRouterEachInterceptor) {
-    this.afterEachInterceptors.push(interceptor)
-  }
 }
 
 const instance = shallowRef({} as UniRouter)
@@ -257,12 +258,15 @@ class Router {
   install(app: VueApp, options: RouterOptions = {}) {
     const { beforeEach, afterEach } = options
 
-    instance.value = new UniRouter(appPagesConfig)
+    instance.value = new UniRouter({
+      appConfig: appPagesConfig,
+      init: app.config.globalProperties.$init.promise,
+    })
     if (beforeEach) {
-      instance.value.beforeEach(beforeEach)
+      instance.value.register('beforeEach', beforeEach)
     }
     if (afterEach) {
-      instance.value.afterEach(afterEach)
+      instance.value.register('afterEach', afterEach)
     }
     app.config.globalProperties.$$router = instance.value
   }
@@ -275,6 +279,8 @@ class Router {
 export function createRouter() {
   return new Router()
 }
+
+const mountedRouter = ref(false)
 
 export function useRoute() {
   const pages = computed(() => {
@@ -302,6 +308,19 @@ export function useRoute() {
     const currentPage = currentPages[currentPages.length - 1]
     const fullPath = currentPage.$page?.fullPath ?? `/${currentPage.route}`
     return instance.value.getRoute(fullPath)
+  })
+
+  onBeforeMount(async () => {
+    if (!mountedRouter.value) {
+      mountedRouter.value = true
+      await instance.value.init
+      const originalFullPath = route.value.fullPath
+      await instance.value.apply('beforeEach', toValue(route), toValue(route))
+      if (originalFullPath !== route.value.fullPath) {
+        await uni.navigateTo({ url: route.value.fullPath })
+      }
+      await instance.value.apply('afterEach', toValue(route), toValue(route))
+    }
   })
 
   return {

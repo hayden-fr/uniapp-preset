@@ -1,7 +1,16 @@
 type AccessToken = string | undefined | null
 
 interface UniAccessConfig {
+  /**
+   * 初始化 token
+   */
   initialAccessToken?: () => AccessToken | Promise<AccessToken>
+  /**
+   * token 更新时触发
+   *
+   * @param accessToken
+   * @returns
+   */
   onChange?: (accessToken: AccessToken) => void
 }
 
