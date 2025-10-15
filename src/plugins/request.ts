@@ -31,9 +31,19 @@ declare global {
      */
     baseURL?: string
     /**
-     * 查询字符串
+     * 查询参数，内置了一个简单的解析器，用于将参数对象转换为查询字符串
      */
     params?: AnyObject
+    /**
+     * 控制查询参数格式化数组索引的设置
+     *
+     * 允许设置的值：true | false
+     *
+     * - 未设置: foo=bar&foo=bar
+     * - true: foo[0]=bar&foo[1]=bar
+     * - false: foo[]=bar&foo[]=bar
+     */
+    paramsIndexes?: boolean
     /**
      * 使用 FormData 作为请求体
      */
@@ -100,6 +110,13 @@ declare global {
  */
 type QuickRequestOptions = Omit<UniHttpRequestOptions, 'method'>
 
+type ExcludeFormUniHttpRequestOptions<K extends keyof UniHttpRequestOptions> =
+  Omit<UniHttpRequestOptions, K>
+
+type UniHttpRequestConstructorOptions = ExcludeFormUniHttpRequestOptions<
+  'url' | 'method' | 'data' | 'skipInitialized'
+>
+
 class UniHttpRequest {
   private racingRequestTask: RacingRequestTask
 
@@ -107,7 +124,7 @@ class UniHttpRequest {
 
   private init: Promise<void>
 
-  constructor(private config: Partial<UniHttpRequestOptions> = {}) {
+  constructor(private config: UniHttpRequestConstructorOptions = {}) {
     this.racingRequestTask = new RacingRequestTask()
     this.logging = config.logging ?? window.console
     this.init = config.init ?? Promise.resolve()
@@ -177,26 +194,48 @@ class UniHttpRequest {
     const custom = _.cloneDeep(options)
     let requestOptions: UniHttpRequestOptions = _.merge({}, config, custom)
     requestOptions.header ??= {}
+    // 类似于洋葱中间件拦截器，顺序如下：
+    // 全局请求拦截 -> 独立请求拦截 -> 请求 -> 独立响应拦截 -> 全局响应拦截
     if (config.interceptors?.request) {
       requestOptions = config.interceptors.request(requestOptions)
     }
     if (custom.interceptors?.request) {
       requestOptions = custom.interceptors.request(requestOptions)
     }
+    // 解析 url 查询参数
+    let requestUrl = requestOptions.url
+    const [relativeUrl, searchString] = requestUrl.split('?')
+    const searchParams = searchString ? searchString.split('&') : []
+
     const { params = {}, useMultipartFormData } = requestOptions
-    const urlObject = new URL(requestOptions.url, config.baseURL || '')
-    const relativeUrl = urlObject.pathname
-    const searchParams = urlObject.searchParams
-    for (const key in params) {
-      if (Object.prototype.hasOwnProperty.call(params, key)) {
-        searchParams.append(key, params[key])
+
+    const indexes = requestOptions.paramsIndexes
+    // 解析 params 查询参数
+    for (const [key, value] of Object.entries(params)) {
+      const isArrayValue = Array.isArray(value)
+      const arrayValues = isArrayValue ? value : [value]
+
+      for (const [index, param] of arrayValues.entries()) {
+        if (isArrayValue === false || typeof indexes !== 'boolean') {
+          // 非数组类型或无需索引的查询参数
+          searchParams.push(`${key}=${encodeURIComponent(param)}`)
+        } else if (indexes === true) {
+          // 设置数组元素索引
+          searchParams.push(`${key}[${index}]=${encodeURIComponent(param)}`)
+        } else if (indexes === false) {
+          // 设置数组元素索引，但设置为空索引
+          searchParams.push(`${key}[]=${encodeURIComponent(param)}`)
+        }
       }
     }
+    // 添加 url 查询参数
+    const queryString = searchParams.filter(Boolean).join('&')
+    requestUrl = [relativeUrl, queryString].filter(Boolean).join('?')
+
     const baseUrl = config.baseURL ?? ''
     const absoluteUrlRegexp = /^(https?|ftp|file|wss?):\/\//i
-    const prefixUrl = absoluteUrlRegexp.test(relativeUrl) ? '' : baseUrl
-    const url = `${prefixUrl}${relativeUrl}?${searchParams.toString()}`
-    requestOptions.url = url
+    const prefixUrl = absoluteUrlRegexp.test(requestUrl) ? '' : baseUrl
+    requestOptions.url = `${prefixUrl}${requestUrl}`
     if (useMultipartFormData) {
       this.parseMultipartFormData(requestOptions)
     }
@@ -276,12 +315,7 @@ declare module 'vue' {
   }
 }
 
-type ExcludeFormUniHttpRequestOptions<K extends keyof UniHttpRequestOptions> =
-  Omit<UniHttpRequestOptions, K>
-
-type UniRequestOptions = ExcludeFormUniHttpRequestOptions<
-  'url' | 'skipInitialized'
->
+type UniRequestOptions = UniHttpRequestConstructorOptions
 
 class Request {
   install(app: VueApp, options: UniRequestOptions = {}) {
