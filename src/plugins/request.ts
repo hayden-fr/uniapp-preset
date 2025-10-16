@@ -1,27 +1,102 @@
-class RacingRequestTask {
-  private static instance: RacingRequestTask
+class RequestController {
+  #status: 'pending' | 'fulfilled' | 'rejected' = 'pending'
 
-  private requestTaskMap: Map<string, UniApp.RequestTask> = new Map()
+  #error?: Error | string
 
-  static getInstance() {
-    return this.instance ?? (this.instance = new RacingRequestTask())
+  constructor(
+    private id: RequestId,
+    private controller: RequestTaskController,
+  ) {}
+
+  checkStatus() {
+    if (this.#status === 'rejected') {
+      throw this.#error instanceof Error
+        ? this.#error
+        : new Error(this.#error ?? '请求已被取消')
+    }
   }
 
-  add(url: string, requestTask: UniApp.RequestTask) {
-    this.remove(url)
-    this.requestTaskMap.set(url, requestTask)
+  private requestTask?: UniApp.RequestTask
+
+  connect(
+    requestTask: UniApp.RequestTask,
+    options?: {
+      raceCondition?: string | false
+    },
+  ) {
+    this.requestTask = requestTask
+    const raceCondition = options?.raceCondition
+    // 如果存在竞态条件，先查询已存在的请求，取消请求并移除请求任务
+    // 再加入新的请求id
+    if (raceCondition) {
+      const existedRequestId = this.controller.getRaceRequestId(raceCondition)
+      if (existedRequestId) {
+        const controller = this.controller.get(existedRequestId)
+        controller?.abort()
+      }
+      this.controller.setRaceRequestId(raceCondition, this.id)
+    }
   }
 
-  remove(url: string) {
-    if (this.requestTaskMap.has(url)) {
-      const requestTask = this.requestTaskMap.get(url)
-      requestTask?.abort()
-      this.requestTaskMap.delete(url)
+  done() {
+    if (this.#status === 'pending') {
+      this.#status = 'fulfilled'
+      this.controller.remove(this.id)
+    }
+  }
+
+  abort(error?: Error | string) {
+    if (this.#status === 'pending') {
+      this.#error = error
+      this.#status = 'rejected'
+      this.requestTask?.abort()
+      this.controller.remove(this.id)
+    }
+  }
+}
+
+class RequestTaskController {
+  private controllerCollection: Map<RequestId, RequestController> = new Map()
+
+  private racingRequestId: Map<string, RequestId> = new Map()
+
+  createController(id?: RequestId) {
+    const requestId = id ?? Symbol()
+    const controller = new RequestController(requestId, this)
+    this.controllerCollection.set(requestId, controller)
+    return controller
+  }
+
+  get(id: RequestId) {
+    return this.controllerCollection.get(id)
+  }
+
+  setRaceRequestId(raceCondition: string, id: RequestId) {
+    this.racingRequestId.set(raceCondition, id)
+  }
+
+  getRaceRequestId(raceCondition: string) {
+    return this.racingRequestId.get(raceCondition)
+  }
+
+  keys() {
+    return this.controllerCollection.keys()
+  }
+
+  remove(id: RequestId) {
+    this.controllerCollection.delete(id)
+    // 如果请求任务存在竞态条件，一并移除
+    for (const [raceCondition, requestId] of this.racingRequestId.entries()) {
+      if (requestId === id) {
+        this.racingRequestId.delete(raceCondition)
+      }
     }
   }
 }
 
 declare global {
+  type RequestId = symbol | string | number
+
   /**
    * UniHttpRequest 请求配置
    */
@@ -78,6 +153,10 @@ declare global {
      * 跳过初始化检查
      */
     skipInitialized?: boolean
+    /**
+     * 请求id，用于取消请求
+     */
+    requestId?: RequestId
   }
 
   /**
@@ -118,24 +197,19 @@ type UniHttpRequestConstructorOptions = ExcludeFormUniHttpRequestOptions<
 >
 
 class UniHttpRequest {
-  private racingRequestTask: RacingRequestTask
-
   private logging: LoggingInterface
 
   private init: Promise<void>
 
-  constructor(private config: UniHttpRequestConstructorOptions = {}) {
-    this.racingRequestTask = new RacingRequestTask()
+  private readonly config: UniHttpRequestConstructorOptions
+
+  private readonly requestTaskController: RequestTaskController
+
+  constructor(config: UniHttpRequestConstructorOptions = {}) {
     this.logging = config.logging ?? window.console
     this.init = config.init ?? Promise.resolve()
-  }
-
-  /**
-   * 动态修改 request 配置
-   * @param config
-   */
-  setConfig(config: AnyObject) {
-    this.config = _.merge({}, this.config, _.cloneDeep(config))
+    this.config = Object.freeze(config)
+    this.requestTaskController = new RequestTaskController()
   }
 
   private parseMultipartFormData(requestOptions: UniHttpRequestOptions) {
@@ -186,9 +260,15 @@ class UniHttpRequest {
   }
 
   private async httpRequest<T>(options: UniHttpRequestOptions) {
+    const controller = this.requestTaskController.createController(
+      options.requestId,
+    )
+
     const skipInitialized = options.skipInitialized ?? false
     if (!skipInitialized) {
       await this.init
+      // 检查任务是否被取消
+      controller.checkStatus()
     }
     const config = _.cloneDeep(this.config)
     const custom = _.cloneDeep(options)
@@ -250,6 +330,8 @@ class UniHttpRequest {
           ...requestOptions,
           raceCondition: config.raceCondition,
         })
+      // 在实际请求前，再次检查任务是否被取消
+      controller.checkStatus()
       const requestTask = uni.request({
         ...requestOptions,
         success: (res) => {
@@ -270,16 +352,23 @@ class UniHttpRequest {
         fail: (err) => {
           reject(new Error(err.errMsg || '请求失败，程序错误'))
         },
-        complete: (err) => {
-          if (raceCondition && err.errMsg !== 'request:fail abort') {
-            this.racingRequestTask.remove(raceCondition)
-          }
+        complete: () => {
+          controller.done()
         },
       })
-      if (raceCondition) {
-        this.racingRequestTask.add(raceCondition, requestTask)
-      }
+      controller.connect(requestTask, { raceCondition })
     })
+  }
+
+  cancel(requestId?: RequestId | RequestId[]) {
+    const ids = requestId
+      ? _.castArray(requestId)
+      : this.requestTaskController.keys()
+
+    for (const id of ids) {
+      const controller = this.requestTaskController.get(id)
+      controller?.abort()
+    }
   }
 
   async get<T>(options: QuickRequestOptions) {
