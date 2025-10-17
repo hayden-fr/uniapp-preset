@@ -118,6 +118,13 @@ class UniRouter {
     this.interceptors[name].push(fn)
   }
 
+  getCurrentRoute() {
+    const currentPages = getCurrentPages<PageInstance>()
+    const currentPage = currentPages[currentPages.length - 1]
+    const fullPath = currentPage.$page?.fullPath ?? `/${currentPage.route}`
+    return this.getRoute(fullPath)
+  }
+
   private initialize() {
     const homePageRoute = this.homePageRoute
 
@@ -132,20 +139,8 @@ class UniRouter {
     // 拦截路由后，可能造成目标页面与跳转方法不符的情况，做一个兼容性增强
     // 而拦截路由需要在实际调用之前拦截，因此需要使用代理模式
 
-    const resolveRoute = (fullPath: string) => {
-      const to = this.getRoute(fullPath)
-
-      const currentPages = getCurrentPages<PageInstance>()
-      const currentPage = currentPages[currentPages.length - 1]
-      const from = this.getRoute(currentPage.$page.fullPath)
-
-      return {
-        currentPages,
-        currentPage,
-        from,
-        to,
-      }
-    }
+    const getRoute = this.getRoute.bind(this)
+    const getCurrentRoute = this.getCurrentRoute.bind(this)
 
     const beforeEach = this.apply.bind(this, 'beforeEach')
     const afterEach = this.apply.bind(this, 'afterEach')
@@ -162,7 +157,8 @@ class UniRouter {
     ) => {
       return function (options: T) {
         const { url, success } = options
-        const { to, from } = resolveRoute(url.toString())
+        const to = getRoute(url)
+        const from = getCurrentRoute()
 
         if (typeof success === 'function') {
           Object.assign(options, {
@@ -317,10 +313,7 @@ export function useRoute() {
   })
 
   const route = computed(() => {
-    const currentPages = getCurrentPages<PageInstance>()
-    const currentPage = currentPages[currentPages.length - 1]
-    const fullPath = currentPage.$page?.fullPath ?? `/${currentPage.route}`
-    return instance.value.getRoute(fullPath)
+    return instance.value.getCurrentRoute()
   })
 
   onBeforeMount(async () => {
