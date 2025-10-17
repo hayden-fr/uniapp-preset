@@ -10,6 +10,10 @@ class UniInitializationState {
   promiseResolve: any
 }
 
+interface UniInitializationOptions {
+  logging?: LoggingInterface
+}
+
 class UniInitialization extends Function {
   private state: UniInitializationState
 
@@ -17,7 +21,7 @@ class UniInitialization extends Function {
 
   private logging: LoggingInterface
 
-  constructor(logging?: LoggingInterface) {
+  constructor(options: UniInitializationOptions = {}) {
     super('...args', `return this.init(...args)`)
 
     this.state = new UniInitializationState()
@@ -26,7 +30,7 @@ class UniInitialization extends Function {
       this.state.promiseResolve = resolve
     })
 
-    this.logging = logging ?? console
+    this.logging = options.logging ?? window.console
 
     const callable = () => {
       this.init()
@@ -38,7 +42,7 @@ class UniInitialization extends Function {
     return callable as any
   }
 
-  private queue: InitializeObject[] = []
+  private queue: (InitializeObject & { cause: Error })[] = []
 
   private async init() {
     if (this.state.called) {
@@ -52,8 +56,16 @@ class UniInitialization extends Function {
       return beforeOrder - afterOrder
     })
 
-    for (const { fn: callback } of queue) {
-      await callback()
+    for (const { fn: callback, cause } of queue) {
+      try {
+        await callback()
+      } catch (e) {
+        const caused = e instanceof Error ? e : new Error(String(e))
+        cause.cause = caused
+        const message = '[UniInitialization] 初始化运行错误'
+        const error = new Error(message, { cause: cause })
+        this.logging.error(error)
+      }
     }
 
     this.state.promiseResolve()
@@ -61,7 +73,9 @@ class UniInitialization extends Function {
 
   register(fn: Initialize) {
     const task = typeof fn === 'function' ? { fn } : fn
-    this.queue.push(task)
+    const cause = new Error()
+    cause.name = 'UniInitializeError'
+    this.queue.push({ ...task, cause })
   }
 }
 
@@ -74,8 +88,14 @@ declare module 'vue' {
 const instance = shallowRef({} as UniInitialization)
 
 class Initialization {
-  install(app: VueApp) {
-    instance.value = new UniInitialization(app.config.globalProperties.$logging)
+  install(app: VueApp, init?: () => void | Promise<void>) {
+    instance.value = new UniInitialization({
+      logging: app.config.globalProperties.$logging,
+    })
+
+    instance.value.register(async () => {
+      await init?.()
+    })
     Object.defineProperty(app.config.globalProperties, '$init', {
       get() {
         return instance.value

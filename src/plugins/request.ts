@@ -3,16 +3,30 @@ class RequestController {
 
   #error?: Error | string
 
+  requestId: RequestId
+
   constructor(
-    private id: RequestId,
+    private requestOptions: UniHttpRequestOptions,
     private controller: RequestTaskController,
-  ) {}
+  ) {
+    const requestId = requestOptions.requestId ?? Symbol()
+    requestOptions.requestId = requestId
+    this.requestId = requestId
+  }
 
   checkStatus() {
     if (this.#status === 'rejected') {
-      throw this.#error instanceof Error
-        ? this.#error
-        : new Error(this.#error ?? '请求已被取消')
+      const cause =
+        this.#error instanceof Error
+          ? this.#error
+          : new Error(this.#error ?? '请求已被取消')
+
+      const reuqestMethod = this.requestOptions.method
+      const requestUrl = this.requestOptions.url
+      const message = `请求 ${reuqestMethod} ${requestUrl} 已取消`
+      const error = new Error(message, { cause: cause })
+      error.name = 'RequestAbortError'
+      throw error
     }
   }
 
@@ -34,14 +48,14 @@ class RequestController {
         const controller = this.controller.get(existedRequestId)
         controller?.abort()
       }
-      this.controller.setRaceRequestId(raceCondition, this.id)
+      this.controller.setRaceRequestId(raceCondition, this.requestId)
     }
   }
 
   done() {
     if (this.#status === 'pending') {
       this.#status = 'fulfilled'
-      this.controller.remove(this.id)
+      this.controller.remove(this.requestId)
     }
   }
 
@@ -50,7 +64,7 @@ class RequestController {
       this.#error = error
       this.#status = 'rejected'
       this.requestTask?.abort()
-      this.controller.remove(this.id)
+      this.controller.remove(this.requestId)
     }
   }
 }
@@ -60,9 +74,9 @@ class RequestTaskController {
 
   private racingRequestId: Map<string, RequestId> = new Map()
 
-  createController(id?: RequestId) {
-    const requestId = id ?? Symbol()
-    const controller = new RequestController(requestId, this)
+  createController(options: UniHttpRequestOptions) {
+    const controller = new RequestController(options, this)
+    const requestId = controller.requestId
     this.controllerCollection.set(requestId, controller)
     return controller
   }
@@ -260,9 +274,7 @@ class UniHttpRequest {
   }
 
   private async httpRequest<T>(options: UniHttpRequestOptions) {
-    const controller = this.requestTaskController.createController(
-      options.requestId,
-    )
+    const controller = this.requestTaskController.createController(options)
 
     const skipInitialized = options.skipInitialized ?? false
     if (!skipInitialized) {
@@ -350,7 +362,17 @@ class UniHttpRequest {
           }
         },
         fail: (err) => {
-          reject(new Error(err.errMsg || '请求失败，程序错误'))
+          const requestMethod = options.method
+          const requestUrl = options.url
+          const error = new Error(`${requestMethod} ${requestUrl}`)
+          error.name = 'UniRequestError'
+          if (err.errMsg === 'request:fail') {
+            error.name = 'RequestFailError'
+          }
+          if (err.errMsg === 'request:abort') {
+            error.name = 'RequestAbortError'
+          }
+          reject(error)
         },
         complete: () => {
           controller.done()
@@ -365,9 +387,11 @@ class UniHttpRequest {
       ? _.castArray(requestId)
       : this.requestTaskController.keys()
 
+    const cause = new Error()
+    cause.name = 'UniHttpRequestCancel'
     for (const id of ids) {
       const controller = this.requestTaskController.get(id)
-      controller?.abort()
+      controller?.abort(cause)
     }
   }
 
