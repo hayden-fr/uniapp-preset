@@ -1,5 +1,5 @@
 <template>
-  <text v-if="readonly">{{ modelValue }}</text>
+  <text v-if="readonly">{{ modelValue ?? emptyValue }}</text>
   <picker
     v-else
     mode="date"
@@ -25,13 +25,38 @@
 
 <script setup lang="ts">
 interface Props {
-  readonly?: boolean
+  /**
+   * 是否禁用
+   */
   disabled?: boolean
+  /**
+   * 是否只读
+   */
+  readonly?: boolean
+  /**
+   * 只读模式下，当值为空时的占位符
+   */
+  emptyValue?: string
+  /**
+   * 提示文字
+   */
   placeholder?: string
-  start?: string
-  end?: string
-  fields?: 'year' | 'month' | 'day'
+  /**
+   * 值改变时回调
+   */
   onChange?: (val: string) => void
+  /**
+   * 开始日期
+   */
+  start?: string
+  /**
+   * 结束日期
+   */
+  end?: string
+  /**
+   * 日期选择器颗粒度
+   */
+  fields?: 'year' | 'month' | 'day'
 }
 
 declare global {

@@ -1,7 +1,7 @@
 <template>
   <view class="flex w-full items-center gap-2">
     <view v-if="icon" :class="[icon]"></view>
-    <text v-if="readonly">{{ modelValue }}</text>
+    <view v-if="readonly" class="flex-1">{{ modelValue ?? emptyValue }}</view>
     <template v-else>
       <input
         type="text"
@@ -11,12 +11,14 @@
         :placeholder="placeholder"
         :disabled="disabled"
       />
-      <view
-        v-if="allowClear"
-        v-show="modelValue"
-        class="i-tabler-playstation-x"
-        @click="handleClear"
-      ></view>
+      <view class="text-gray flex items-center gap-2">
+        <view
+          v-if="allowClear"
+          v-show="modelValue"
+          class="i-tabler-playstation-x"
+          @click="handleClear"
+        ></view>
+      </view>
     </template>
   </view>
 </template>
@@ -24,17 +26,25 @@
 <script setup lang="ts">
 interface Props {
   /**
-   * 是否只读
-   */
-  readonly?: boolean
-  /**
    * 是否禁用
    */
   disabled?: boolean
   /**
+   * 是否只读
+   */
+  readonly?: boolean
+  /**
+   * 只读模式下，当值为空时的占位符
+   */
+  emptyValue?: string
+  /**
    * 提示文字
    */
   placeholder?: string
+  /**
+   * 值改变时回调
+   */
+  onChange?: (value: string | undefined) => void
   /**
    * 图标
    */
@@ -43,10 +53,6 @@ interface Props {
    * 是否显示清除按钮
    */
   allowClear?: boolean
-  /**
-   * 值改变时回调
-   */
-  onChange?: (val: string) => void
 }
 
 declare global {
@@ -68,9 +74,7 @@ const handleChange = (e: any) => {
 }
 
 const handleClear = () => {
-  console.log('clear input value')
-  const val = ''
-  modelValue.value = val
-  props.onChange?.(val)
+  modelValue.value = undefined
+  props.onChange?.(modelValue.value)
 }
 </script>

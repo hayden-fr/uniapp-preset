@@ -1,6 +1,6 @@
 <template>
   <view v-if="readonly" class="py-3">
-    <text>{{ modelValue }}</text>
+    <text>{{ modelValue ?? emptyValue }}</text>
   </view>
   <view v-else class="relative w-full py-3">
     <textarea
@@ -13,25 +13,61 @@
       :auto-height="autoHeight"
       :cursor-spacing="cursorSpacing"
     ></textarea>
-    <view
-      v-if="showCount"
-      class="text-gray pointer-events-none absolute bottom-3 right-0"
-    >
-      {{ modelValue?.length ?? 0 }} / {{ maxlength }}
+    <view class="text-gray absolute bottom-3 right-0 flex items-center gap-2">
+      <view v-if="showCount" class="pointer-events-none">
+        {{ modelValue?.length ?? 0 }} / {{ maxlength }}
+      </view>
+      <view
+        v-if="allowClear"
+        class="i-tabler-playstation-x"
+        @click="handleClear"
+      ></view>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
 interface Props {
-  readonly?: boolean
+  /**
+   * 是否禁用
+   */
   disabled?: boolean
+  /**
+   * 是否只读
+   */
+  readonly?: boolean
+  /**
+   * 只读模式下，当值为空时的占位符
+   */
+  emptyValue?: string
+  /**
+   * 提示文字
+   */
   placeholder?: string
+  /**
+   * 值改变时回调
+   */
+  onChange?: (value: string | undefined) => void
+  /**
+   * 是否显示清除按钮
+   */
+  allowClear?: boolean
+  /**
+   * 最大长度
+   */
   maxlength?: number
+  /**
+   * 显示字数统计
+   */
   showCount?: boolean
+  /**
+   * 是否自动增高输入区域
+   */
   autoHeight?: boolean
+  /**
+   * 指定光标与键盘的距离
+   */
   cursorSpacing?: number
-  onChange?: (val: string) => void
 }
 
 declare global {
@@ -52,5 +88,10 @@ const handleChange = (e: any) => {
   const val = e.detail.value
   modelValue.value = val
   props.onChange?.(val)
+}
+
+const handleClear = () => {
+  modelValue.value = undefined
+  props.onChange?.(modelValue.value)
 }
 </script>
