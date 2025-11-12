@@ -61,7 +61,7 @@
           ]"
         ></view>
         <view
-          class="flex-1 overflow-hidden"
+          class="flex flex-1 items-center overflow-hidden"
           :class="[
             { 'text-right': (item.labelPosition ?? labelPosition) === 'left' },
             classNames?.input,
@@ -69,60 +69,62 @@
           ]"
           :style="[styles?.input, item.styles?.input]"
         >
-          <template v-if="item.type === 'custom'">
-            <slot
-              :name="item.field"
+          <view class="flex-1">
+            <template v-if="item.type === 'custom'">
+              <slot
+                :name="item.field"
+                :readonly="item.readonly ?? readonly"
+                :empty-value="item.emptyValue ?? emptyValue"
+                :disabled="item.disabled ?? disabled"
+                :item="item"
+              ></slot>
+            </template>
+
+            <date-picker
+              v-else-if="item.type === 'date'"
               :readonly="item.readonly ?? readonly"
               :empty-value="item.emptyValue ?? emptyValue"
               :disabled="item.disabled ?? disabled"
-              :item="item"
-            ></slot>
-          </template>
+              v-bind="item"
+              v-model="formData[item.field]"
+            ></date-picker>
 
-          <date-picker
-            v-else-if="item.type === 'date'"
-            :readonly="item.readonly ?? readonly"
-            :empty-value="item.emptyValue ?? emptyValue"
-            :disabled="item.disabled ?? disabled"
-            v-bind="item"
-            v-model="formData[item.field]"
-          ></date-picker>
+            <number-input
+              v-else-if="item.type === 'number'"
+              :readonly="item.readonly ?? readonly"
+              :empty-value="item.emptyValue ?? emptyValue"
+              :disabled="item.disabled ?? disabled"
+              v-bind="item"
+              v-model="formData[item.field]"
+            ></number-input>
 
-          <number-input
-            v-else-if="item.type === 'number'"
-            :readonly="item.readonly ?? readonly"
-            :empty-value="item.emptyValue ?? emptyValue"
-            :disabled="item.disabled ?? disabled"
-            v-bind="item"
-            v-model="formData[item.field]"
-          ></number-input>
+            <password-input
+              v-else-if="item.type === 'password'"
+              :readonly="item.readonly ?? readonly"
+              :empty-value="item.emptyValue ?? emptyValue"
+              :disabled="item.disabled ?? disabled"
+              v-bind="item"
+              v-model="formData[item.field]"
+            ></password-input>
 
-          <password-input
-            v-else-if="item.type === 'password'"
-            :readonly="item.readonly ?? readonly"
-            :empty-value="item.emptyValue ?? emptyValue"
-            :disabled="item.disabled ?? disabled"
-            v-bind="item"
-            v-model="formData[item.field]"
-          ></password-input>
+            <textarea-input
+              v-else-if="item.type === 'textarea'"
+              :readonly="item.readonly ?? readonly"
+              :empty-value="item.emptyValue ?? emptyValue"
+              :disabled="item.disabled ?? disabled"
+              v-bind="item"
+              v-model="formData[item.field]"
+            ></textarea-input>
 
-          <textarea-input
-            v-else-if="item.type === 'textarea'"
-            :readonly="item.readonly ?? readonly"
-            :empty-value="item.emptyValue ?? emptyValue"
-            :disabled="item.disabled ?? disabled"
-            v-bind="item"
-            v-model="formData[item.field]"
-          ></textarea-input>
-
-          <text-input
-            v-else
-            :readonly="item.readonly ?? readonly"
-            :empty-value="item.emptyValue ?? emptyValue"
-            :disabled="item.disabled ?? disabled"
-            v-bind="item"
-            v-model="formData[item.field]"
-          ></text-input>
+            <text-input
+              v-else
+              :readonly="item.readonly ?? readonly"
+              :empty-value="item.emptyValue ?? emptyValue"
+              :disabled="item.disabled ?? disabled"
+              v-bind="item"
+              v-model="formData[item.field]"
+            ></text-input>
+          </view>
         </view>
         <slot :name="item.field.toString() + '_suffix'"></slot>
       </view>
