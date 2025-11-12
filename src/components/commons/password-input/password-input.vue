@@ -12,19 +12,18 @@
       :placeholder="placeholder"
       :disabled="disabled"
     />
-    <view class="text-gray flex items-center gap-2">
-      <view
-        v-if="allowClear"
-        v-show="modelValue"
-        class="i-tabler-playstation-x"
-        @click="handleClear"
-      ></view>
-      <view
-        v-if="showVisible"
-        :class="[checkPassword ? 'i-tabler-eye' : 'i-tabler-eye-closed']"
-        @click="handleToggle"
-      ></view>
-    </view>
+    <view
+      v-if="allowClear"
+      v-show="modelValue"
+      class="text-gray i-tabler-playstation-x"
+      @click="handleClear"
+    ></view>
+    <view
+      v-if="showVisible"
+      class="text-gray"
+      :class="[checkPassword ? 'i-tabler-eye' : 'i-tabler-eye-closed']"
+      @click="handleToggle"
+    ></view>
   </view>
 </template>
 

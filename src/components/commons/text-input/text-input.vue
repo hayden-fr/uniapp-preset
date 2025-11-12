@@ -11,14 +11,12 @@
         :placeholder="placeholder"
         :disabled="disabled"
       />
-      <view class="text-gray flex items-center gap-2">
-        <view
-          v-if="allowClear"
-          v-show="modelValue"
-          class="i-tabler-playstation-x"
-          @click="handleClear"
-        ></view>
-      </view>
+      <view
+        v-if="allowClear"
+        v-show="modelValue"
+        class="text-gray i-tabler-playstation-x"
+        @click="handleClear"
+      ></view>
     </template>
   </view>
 </template>
