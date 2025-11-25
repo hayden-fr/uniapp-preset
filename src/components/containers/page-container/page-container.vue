@@ -5,73 +5,65 @@
     :class="[classNames?.root]"
     :style="[styles?.root]"
   >
-    <view v-if="isCustomNavigationBar">
+    <view
+      v-if="waiting"
+      class="z-999 absolute h-full w-full"
+      :style="[{ backgroundColor: route.style.navigationBarBackgroundColor }]"
+    >
+      <slot name="waiting">
+        <custom-waiting></custom-waiting>
+      </slot>
+    </view>
+
+    <view v-if="isCustomNavigationBar && showNavigationBar">
       <slot
         name="navigation-bar"
         :statusBarHeight="statusBarHeight"
         :navigationBarHeight="navigationBarHeight"
         :height="statusBarHeight + navigationBarHeight"
       >
-        <view
-          class="text-base"
-          :style="{
-            color: route.style.navigationBarTextStyle,
-            backgroundColor: route.style.navigationBarBackgroundColor,
-          }"
-        >
-          <view :style="{ height: statusBarHeight + 'px' }"></view>
-          <view
-            class="relative flex items-center justify-center"
-            :style="{ height: navigationBarHeight + 'px' }"
-          >
-            <view v-if="showBackBtn" class="absolute left-1">
-              <view class="flex h-7 w-7 items-center justify-center">
-                <view
-                  class="i-tabler-chevron-left text-3xl"
-                  :style="{ '--un-icon': `url(${backBtnImage})` }"
-                  @click="goBack"
-                ></view>
-              </view>
-            </view>
-            <view>{{ route.style.navigationBarTitleText }}</view>
-          </view>
-        </view>
+        <custom-navigation-bar
+          :route="route"
+          :status-bar-height="statusBarHeight"
+          :navigation-bar-height="navigationBarHeight"
+        ></custom-navigation-bar>
       </slot>
     </view>
 
-    <scroll-view :scroll-y="scrollable" class="flex-1 overflow-hidden">
-      <view
-        class="flex h-full flex-col"
-        :class="[classNames?.content]"
-        :style="[styles?.content]"
-      >
-        <slot></slot>
-      </view>
-    </scroll-view>
+    <view
+      class="flex-1"
+      :class="[
+        scrollable ? 'overflow-y-scroll' : 'overflow-hidden',
+        classNames?.content,
+      ]"
+      :style="[styles?.content]"
+    >
+      <slot></slot>
+    </view>
 
     <view class="w-full">
       <!-- 自定义底部导航栏 -->
-      <view v-if="route.isTabBar && tabBar && isCustomTabbar">
-        <custom-tabbar :route="route" :tabbar="tabBar"></custom-tabbar>
-      </view>
+      <custom-tabbar
+        v-if="route.isTabBar && tabBar && isCustomTabbar"
+        :route="route"
+        :tabbar="tabBar"
+      ></custom-tabbar>
 
       <!-- 底部安全区 -->
       <view
-        v-if="isCustomTabbar || !route.isTabBar"
+        v-if="(!route.isTabBar && showBottomSafeArea) || isCustomTabbar"
         role="safe-bottom"
         class="w-full"
-        :class="[classNames?.safeBottom]"
-        :style="[{ height: safeBottomHeight + 'px' }, styles?.safeBottom]"
+        :style="[{ height: safeBottomHeight + 'px' }]"
       ></view>
     </view>
-
-    <water-mark :content="waterContent"></water-mark>
   </view>
 </template>
 
 <script setup lang="ts">
+import customNavigationBar from './custom-navigation-bar.vue'
 import customTabbar from './custom-tabbar.vue'
-import waterMark from './water-mark.vue'
+import customWaiting from './custom-waiting.vue'
 
 interface Props {
   /**
@@ -79,9 +71,17 @@ interface Props {
    */
   scrollable?: boolean
   /**
-   * 是否开启下拉刷新
+   * 是否显示自定义导航栏，仅使用自定义导航栏时生效
    */
-  pullToRefresh?: boolean
+  showNavigationBar?: boolean
+  /**
+   * 是否显示返回按钮，仅使用自定义导航栏时生效
+   */
+  showBackBtn?: boolean
+  /**
+   * 是否设置底部安全距离
+   */
+  showBottomSafeArea?: boolean
   /**
    * 语义化结构 class
    */
@@ -92,9 +92,22 @@ interface Props {
   styles?: Semantic<SemanticDOM, StyleValue>
 }
 
-type SemanticDOM = 'root' | 'content' | 'safeBottom'
+type SemanticDOM = 'root' | 'content'
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  scrollable: false,
+  showNavigationBar: true,
+  showBottomSafeArea: true,
+})
+
+const { init } = useInit()
+
+const waiting = ref(true)
+
+onMounted(async () => {
+  await init()
+  waiting.value = false
+})
 
 const { statusBarHeight, navigationBarHeight, safeBottomHeight } =
   usePageContainer()
@@ -105,40 +118,7 @@ const isCustomNavigationBar = computed(() => {
   return route.value.style.navigationStyle === 'custom'
 })
 
-const backBtnImage = computed(() => {
-  const svg = `
-  <svg width="26" height="26" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-    <path
-      d="M21.781 7.844l-9.063 8.594 9.063 8.594q0.25 0.25 0.25 0.609t-0.25 0.578q-0.25 0.25-0.578 0.25t-0.578-0.25l-9.625-9.125q-0.156-0.125-0.203-0.297t-0.047-0.359q0-0.156 0.047-0.328t0.203-0.297l9.625-9.125q0.25-0.25 0.578-0.25t0.578 0.25q0.25 0.219 0.25 0.578t-0.25 0.578z"
-      fill="currentColor"
-    ></path>
-  </svg>`
-  return `data:image/svg+xml;uft8,${encodeURIComponent(svg)}`
-})
-
-const showBackBtn = computed(() => {
-  return !(route.value.isHomePage || route.value.isTabBar)
-})
-
-const goBack = () => {
-  uni.navigateBack()
-}
-
 const isCustomTabbar = computed(() => {
   return tabBar.value?.custom === true
-})
-
-const waterContent = computed(() => {
-  // TODO 使用用户
-  const date = new Date().toLocaleDateString()
-  return `hello world\n${date}`
-})
-
-onMounted(() => {
-  // #ifdef H5
-  if (isCustomTabbar.value && route.value.isTabBar) {
-    uni.hideTabBar()
-  }
-  // #endif
 })
 </script>

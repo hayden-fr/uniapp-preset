@@ -20,9 +20,21 @@
 import customTabbarItem from './custom-tabbar-item.vue'
 
 interface Props {
+  /**
+   * 路由信息
+   */
   route: UniRoute
+  /**
+   * tabbar信息
+   */
   tabbar: UniTabBar
 }
 
 defineProps<Props>()
+
+onMounted(() => {
+  // #ifdef H5
+  uni.hideTabBar()
+  // #endif
+})
 </script>
