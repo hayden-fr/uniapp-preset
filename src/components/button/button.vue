@@ -183,10 +183,18 @@ const buttonIcon = computed(() => {
 })
 
 const buttonStyle = computed(() => {
-  let { color, variant, type, danger, shape } = props
+  let { color, variant, type, danger, shape, size, disabled } = props
 
   const classNames: ClassNameValue = ['m-0', 'group/button']
   const styles: StyleValue = []
+
+  if (size) {
+    classNames.push(`btn-${size}`)
+  }
+
+  if (disabled) {
+    classNames.push('btn-disabled')
+  }
 
   if (props.loading) {
     classNames.push('btn-loading')
@@ -307,19 +315,19 @@ const buttonStyle = computed(() => {
 </script>
 
 <style>
-button {
+.group_button {
   --uni-button-control-height: 3rem;
   height: var(--uni-button-control-height);
   min-width: var(--uni-button-control-height);
 }
 
-button:after {
+.group_button:after {
   width: 100%;
   height: 100%;
   transform: scale(1);
 }
 
-button[size='mini'] {
+.group_button.btn-mini {
   --uni-button-control-height: 2rem;
   display: block;
   line-height: 2.1;
@@ -327,39 +335,39 @@ button[size='mini'] {
   padding: 0 0.44em;
 }
 
-button[size='small'] {
+.group_button.btn-small {
   --uni-button-control-height: 2.5rem;
   line-height: 2.4;
   font-size: 15px;
   padding: 0 0.84em;
 }
 
-button[size='large'] {
+.group_button.btn-large {
   --uni-button-control-height: 3.5rem;
   line-height: 2.6;
   font-size: 21px;
   padding: 0 1.24em;
 }
 
-button[disabled]::after {
+.group_button.btn-disabled::after {
   border-color: rgba(0, 0, 0, 0.3);
 }
 
-button[disabled].variant-link,
-button[disabled].variant-text {
+.group_button.btn-disabled.variant-link,
+.group_button.btn-disabled.variant-text {
   background-color: transparent;
 }
 
-button.btn-ghost {
+.group_button.btn-ghost {
   background-color: transparent !important;
 }
 
-button.btn-icon-only {
+.group_button.btn-icon-only {
   width: var(--uni-button-control-height);
   padding: 0 0.2em;
 }
 
-button.btn-loading::after {
+.group_button.btn-loading::after {
   --un-border-opacity: 0.5 !important;
   background-color: #ffffff;
   opacity: var(--un-border-opacity);
