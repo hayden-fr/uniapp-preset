@@ -1,20 +1,45 @@
 interface FormContainerOptions<Data extends AnyObject> {
   data: MaybeRefOrGetter<Data>
   items: MaybeRefOrGetter<FormItem<Data>[]>
+  defaultErrorPrompt?: ErrorPromptType
 }
+
+type ErrorPromptType = 'toast' | 'form-item'
 
 export const useFormContainer = <Data extends AnyObject>(
   options: FormContainerOptions<Data>,
 ) => {
-  const validate = async () => {
+  const { defaultErrorPrompt = 'toast' } = options
+  const itemsValidation = ref<FormItemError<Data>>({})
+
+  /**
+   * 验证表单项
+   *
+   * @param errorPrompt 如何提示错误信息 toast | static
+   * - toast: 使用消息提示框进行错误提示，并且在某一项规则验证不通过时，立即停止后面的规则的校验
+   * - form-item: 在所有验证失败的表单项下方显示错误信息，会验证所有的表单项
+   *
+   */
+  const validate = async (
+    errorPrompt: ErrorPromptType = defaultErrorPrompt,
+  ) => {
+    let hasError = false
+    itemsValidation.value = {}
+
     const formData = toValue(options.data)
     const formItems = toValue(options.items)
 
-    const throwError = (message: string) => {
-      throw new Error(message)
-    }
-
     for (const item of formItems) {
+      const throwError = (message: string) => {
+        if (errorPrompt === 'toast') {
+          throw new Error(message)
+        }
+        if (errorPrompt === 'form-item') {
+          hasError = true
+          itemsValidation.value[item.field] = { message }
+        }
+      }
+
       const rules = item.rules ?? []
       const value = formData[item.field]
       for (const rule of rules) {
@@ -84,9 +109,22 @@ export const useFormContainer = <Data extends AnyObject>(
         }
       }
     }
+
+    if (hasError) {
+      throw new SilenceError('表单验证失败')
+    }
   }
+
+  const formProps = computed(() => {
+    return {
+      items: toValue(options.items),
+      itemsValidation: toValue(itemsValidation),
+    }
+  })
 
   return {
     validate,
+    itemsValidation,
+    formProps,
   }
 }

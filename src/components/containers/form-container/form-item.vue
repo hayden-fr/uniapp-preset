@@ -120,6 +120,18 @@
       </view>
       <slot :name="item.field.toString() + '_suffix'"></slot>
     </view>
+
+    <view
+      :class="[
+        'text-red absolute bottom-0 text-xs',
+        labelPosition === 'left' ? 'right-4' : '',
+        classNames?.validation,
+        item.classNames?.validation,
+      ]"
+      :style="[styles?.validation, item.styles?.validation]"
+    >
+      {{ validationMessage }}
+    </view>
   </view>
 </template>
 
@@ -176,4 +188,9 @@ const border = computed(() => formConfig.value?.border)
 const classNames = computed(() => formConfig.value?.classNames)
 
 const styles = computed(() => formConfig.value?.styles)
+
+const validationMessage = computed(() => {
+  const validation = toValue(formConfig.value?.itemsValidation)
+  return validation?.[props.item.field]?.message
+})
 </script>

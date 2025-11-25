@@ -4,6 +4,9 @@ const getErrorMessage = (err: unknown, defaultMsg = '未知错误') => {
 }
 
 export const toastError = async (err: unknown, defaultMsg = '未知错误') => {
+  if (err instanceof SilenceError) {
+    return
+  }
   const title = getErrorMessage(err, defaultMsg)
   const size = title.replace(/[\u4e00-\u9fa5]/g, '**').length
   const icon = size > 14 ? 'none' : 'error'

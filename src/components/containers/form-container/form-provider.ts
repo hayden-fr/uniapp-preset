@@ -1,6 +1,11 @@
 import type { InjectionKey } from 'vue'
 
-type FormItemSemanticDOM = 'item' | 'label' | 'required' | 'input'
+type FormItemSemanticDOM =
+  | 'item'
+  | 'label'
+  | 'required'
+  | 'input'
+  | 'validation'
 
 export type SemanticDOM = 'root' | FormItemSemanticDOM
 
