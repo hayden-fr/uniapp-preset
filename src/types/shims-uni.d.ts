@@ -7,6 +7,12 @@ declare module '@vue/runtime-core' {
   interface ComponentCustomOptions extends Hooks {}
 }
 
+declare module 'vue' {
+  interface ComponentCustomProperties {
+    getOpenerEventChannel: () => UniNamespace.EventChannel
+  }
+}
+
 declare global {
   type HexColor = `#${string}`
 
@@ -34,6 +40,7 @@ declare global {
   }
 
   interface UniTabBar {
+    custom?: boolean
     color: string
     selectedColor: string
     list: UniTabBarItem[]
