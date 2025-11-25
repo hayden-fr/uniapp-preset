@@ -74,6 +74,7 @@ type ComponentFormItem =
   | FormItemPasswordInput
   | FormItemNumberInput
   | FormItemDatePicker
+  | FormItemOptionPicker
 
 declare global {
   /**
