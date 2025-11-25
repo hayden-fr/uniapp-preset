@@ -1,3 +1,5 @@
 # Ignore artifacts:
 coverage
 pnpm-lock.yaml
+auto-imports.d.ts
+easycom.d.ts
