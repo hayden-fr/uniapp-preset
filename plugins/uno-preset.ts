@@ -6,6 +6,9 @@ const appletPreflights = definePreset<object, PresetWindTheme>(() => {
     name: 'unocss-applet:preflights',
     theme: {
       preflightRoot: ['page,:before,:after', '::backdrop'],
+      fontSize: {
+        xxs: ['0.625rem', '0.75'],
+      },
     },
     preflights: [
       {
@@ -28,6 +31,8 @@ const appletPreflights = definePreset<object, PresetWindTheme>(() => {
             return resolveColors(colorValue)
           }
 
+          const currPlatform = (process.env.UNI_PLATFORM ?? '').toLowerCase()
+
           const cssEntries: CSSEntires = [
             ['page', { height: '100%' }],
             [
@@ -35,11 +40,20 @@ const appletPreflights = definePreset<object, PresetWindTheme>(() => {
               {
                 'border-style': 'solid',
                 'border-width': '0',
-                'border-color': getColor('gray') ?? '#e5e7eb',
+                'border-color': getColor('gray', '300') ?? '#d1d5db',
                 'box-sizing': 'border-box',
               },
             ],
           ]
+
+          if (currPlatform === 'h5' || currPlatform === 'web') {
+            cssEntries.push([
+              '.uni-input-input::-ms-reveal',
+              {
+                display: 'none',
+              },
+            ])
+          }
 
           const resolveCSS = ([selector, properties]: CSSEntry) => {
             const entries = Object.entries(properties)
