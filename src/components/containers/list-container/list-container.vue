@@ -5,7 +5,7 @@
       :scroll-y="true"
       :scroll-top="scrollTop"
       :lower-threshold="lowerThreshold"
-      :refresher-enabled="true"
+      :refresher-enabled="refresherEnabled"
       :refresher-threshold="refresherThreshold"
       :refresher-triggered="refresherTriggered"
       :refresher-background="refresherBackground"
@@ -73,6 +73,10 @@ interface Props {
    */
   lowerThreshold?: number | string
   /**
+   * 允许下拉刷新
+   */
+  refresherEnabled?: boolean
+  /**
    * 设置竖向滚动条位置
    */
   scrollTop?: number | string
@@ -132,6 +136,7 @@ withDefaults(defineProps<Props>(), {
   items: () => [],
   lowerThreshold: 50,
   refresherThreshold: 50,
+  refresherEnabled: true,
   rowKey: 'id',
   refresherBackground: 'transparent',
   noMoreContent: '-- 没有更多了 --',

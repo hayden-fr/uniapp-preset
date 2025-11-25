@@ -4,8 +4,16 @@ interface ListContainerOptions<
 > {
   /**
    * 是否手动触发请求
+   *
+   * 设置为 true 后，不会默认执行，修改 queryParams 也不会自动触发刷新操作。
+   *
+   * @default false
    */
   manual?: MaybeRefOrGetter<boolean>
+  /**
+   * ListContainer 组件的透传选项，是否启用下拉刷新
+   */
+  refresherEnabled?: MaybeRefOrGetter<boolean>
   /**
    * 默认查询参数
    */
@@ -35,6 +43,7 @@ export const useListContainer = <
 ) => {
   const {
     manual,
+    refresherEnabled,
     defaultQueryParams,
     defaultPageSize = 10,
     loadingMask = '加载中...',
@@ -56,11 +65,7 @@ export const useListContainer = <
   const noMoreTriggered = ref(false)
   const scrollTop = ref(0)
 
-  const { init } = useInit()
-
   const refresh = async (e?: EventHandle) => {
-    await init()
-
     try {
       if (refresherTriggered.value) return
 
@@ -99,13 +104,10 @@ export const useListContainer = <
   }
 
   const loadMore = async () => {
-    await init()
-
     try {
       if (loadMoreTriggered.value) return
       if (noMoreTriggered.value) return
 
-      scrollTop.value--
       loadMoreTriggered.value = true
       pagination.value.current++
 
@@ -125,9 +127,9 @@ export const useListContainer = <
     }
   }
 
-  const onScroll = (e: EventHandle) => {
+  const onScroll = _.debounce((e: EventHandle) => {
     scrollTop.value = e.detail.scrollTop
-  }
+  }, 200)
 
   watch(
     queryParams,
@@ -146,6 +148,7 @@ export const useListContainer = <
     return {
       items: toValue(items),
       scrollTop: toValue(scrollTop),
+      refresherEnabled: toValue(refresherEnabled),
       refresherTriggered: toValue(refresherTriggered),
       refresh: refresh,
       loadMoreTriggered: toValue(loadMoreTriggered),
@@ -157,11 +160,14 @@ export const useListContainer = <
 
   return {
     items,
+    scrollTop,
+    refresherEnabled,
     refresherTriggered,
     refresh,
     loadMoreTriggered,
     noMoreTriggered,
     loadMore,
+    onScroll,
     listProps,
     queryParams,
   }
