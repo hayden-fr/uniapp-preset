@@ -72,6 +72,15 @@
             ></slot>
           </template>
 
+          <logic-input
+            v-else-if="item.type === 'logic'"
+            :readonly="readonly"
+            :empty-value="emptyValue"
+            :disabled="disabled"
+            v-bind="item"
+            v-model="modelValue"
+          ></logic-input>
+
           <option-picker
             v-else-if="item.type === 'option'"
             :readonly="readonly"
@@ -146,6 +155,7 @@
 
 <script setup lang="ts" generic="Data extends Record<string, any> = object">
 import datePicker from '@/components/commons/date-picker/date-picker.vue'
+import logicInput from '@/components/commons/logic-input/logic-input.vue'
 import numberInput from '@/components/commons/number-input/number-input.vue'
 import optionPicker from '@/components/commons/option-picker/option-picker.vue'
 import passwordInput from '@/components/commons/password-input/password-input.vue'
