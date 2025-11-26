@@ -136,7 +136,7 @@
           ></text-input>
         </view>
       </view>
-      <slot :name="item.field.toString() + '_suffix'"></slot>
+      <slot :name="`${item.field.toString()}-suffix`"></slot>
     </view>
 
     <view

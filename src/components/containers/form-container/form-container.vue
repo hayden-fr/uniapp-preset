@@ -16,8 +16,8 @@
           :item="item"
         ></slot>
       </template>
-      <template #[`${item.field.toString()}_suffix`]>
-        <slot :name="item.field.toString() + '_suffix'"></slot>
+      <template #[`${item.field.toString()}-suffix`]>
+        <slot :name="`${item.field.toString()}-suffix`"></slot>
       </template>
     </form-item>
   </view>

@@ -35,7 +35,7 @@
           input: 'border rounded-xl h-12 px-4 bg-gray-100',
         }"
       >
-        <template #code_suffix>
+        <template #code-suffix>
           <view class="pl-2">
             <easycom-button shape="round" variant="filled">
               获取验证码
