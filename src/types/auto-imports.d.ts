@@ -7,8 +7,10 @@
 export {}
 declare global {
   const EffectScope: typeof import('vue')['EffectScope']
+  const SilenceError: typeof import('../utils/errors')['SilenceError']
   const _: typeof import('lodash-es')
   const acceptHMRUpdate: typeof import('pinia')['acceptHMRUpdate']
+  const cache: typeof import('../utils/plugins')['cache']
   const computed: typeof import('vue')['computed']
   const createApp: typeof import('vue')['createApp']
   const createPinia: typeof import('pinia')['createPinia']
@@ -26,6 +28,8 @@ declare global {
   const isReactive: typeof import('vue')['isReactive']
   const isReadonly: typeof import('vue')['isReadonly']
   const isRef: typeof import('vue')['isRef']
+  const logging: typeof import('../utils/plugins')['logging']
+  const loopClassNameValue: typeof import('../utils/utilities')['loopClassNameValue']
   const mapActions: typeof import('pinia')['mapActions']
   const mapGetters: typeof import('pinia')['mapGetters']
   const mapState: typeof import('pinia')['mapState']
@@ -75,7 +79,7 @@ declare global {
   const reactive: typeof import('vue')['reactive']
   const readonly: typeof import('vue')['readonly']
   const ref: typeof import('vue')['ref']
-  const request: typeof import('../utils/request')['request']
+  const request: typeof import('../utils/plugins')['request']
   const resolveComponent: typeof import('vue')['resolveComponent']
   const setActivePinia: typeof import('pinia')['setActivePinia']
   const setMapStoreSuffix: typeof import('pinia')['setMapStoreSuffix']
@@ -87,15 +91,27 @@ declare global {
   const toRef: typeof import('vue')['toRef']
   const toRefs: typeof import('vue')['toRefs']
   const toValue: typeof import('vue')['toValue']
+  const toastConfirm: typeof import('../utils/utilities')['toastConfirm']
+  const toastError: typeof import('../utils/utilities')['toastError']
+  const toastSuccess: typeof import('../utils/utilities')['toastSuccess']
+  const toastWarning: typeof import('../utils/utilities')['toastWarning']
   const triggerRef: typeof import('vue')['triggerRef']
   const unref: typeof import('vue')['unref']
   const useAttrs: typeof import('vue')['useAttrs']
   const useCssModule: typeof import('vue')['useCssModule']
   const useCssVars: typeof import('vue')['useCssVars']
+  const useEventChannel: typeof import('../hooks/useEventChannel')['useEventChannel']
+  const useFormContainer: typeof import('../hooks/useFormContainer')['useFormContainer']
   const useId: typeof import('vue')['useId']
+  const useInit: typeof import('../utils/plugins')['useInit']
+  const useListContainer: typeof import('../hooks/useListContainer')['useListContainer']
   const useModel: typeof import('vue')['useModel']
+  const usePageContainer: typeof import('../hooks/usePageContainer')['usePageContainer']
+  const useRoute: typeof import('../utils/plugins')['useRoute']
   const useSlots: typeof import('vue')['useSlots']
+  const useStore: typeof import('../utils/plugins')['useStore']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
+  const useTheme: typeof import('../utils/plugins')['useTheme']
   const watch: typeof import('vue')['watch']
   const watchEffect: typeof import('vue')['watchEffect']
   const watchPostEffect: typeof import('vue')['watchPostEffect']
@@ -106,4 +122,7 @@ declare global {
   // @ts-ignore
   export type { Component, Slot, Slots, ComponentPublicInstance, ComputedRef, DirectiveBinding, ExtractDefaultPropTypes, ExtractPropTypes, ExtractPublicPropTypes, InjectionKey, PropType, Ref, MaybeRef, MaybeRefOrGetter, VNode, WritableComputedRef } from 'vue'
   import('vue')
+  // @ts-ignore
+  export type { SilenceError } from '../utils/errors'
+  import('../utils/errors')
 }
