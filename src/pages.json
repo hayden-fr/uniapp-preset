@@ -5,8 +5,40 @@
     },
     {
       "path": "pages/demo/button"
+    },
+    {
+      "path": "pages/demo/form"
+    },
+    {
+      "path": "pages/demo/list"
+    },
+    {
+      "path": "pages/demo/login"
+    },
+    {
+      "path": "pages/demo/user",
+      "needLogin": true
     }
   ],
+  "uniIdRouter": {
+    "loginPage": "pages/demo/login",
+    "needLogin": []
+  },
+  "tabBar": {
+    "custom": true,
+    "color": "#333",
+    "selectedColor": "#1677ff",
+    "list": [
+      {
+        "pagePath": "pages/demo/index",
+        "text": "首页"
+      },
+      {
+        "pagePath": "pages/demo/user",
+        "text": "我的"
+      }
+    ]
+  },
   "globalStyle": {
     "navigationStyle": "custom",
     "navigationBarTitleText": "UniApp",

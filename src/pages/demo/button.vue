@@ -1,5 +1,8 @@
 <template>
-  <easycom-page-container scrollable :class-names="{ content: 'p-4 gap-4' }">
+  <easycom-page-container
+    scrollable
+    :class-names="{ content: 'p-4 gap-4 flex flex-col' }"
+  >
     <view class="text-xl">语法糖</view>
     <view class="text-gray-600">
       通过 type
