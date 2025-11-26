@@ -4,6 +4,7 @@
       v-for="item in items"
       :key="item.field"
       :item="item"
+      :config="formConfig"
       v-model="formData[item.field]"
     >
       <template #[item.field]>
@@ -23,9 +24,8 @@
 </template>
 
 <script setup lang="ts" generic="Data extends Record<string, any> = object">
+import type { FormConfig, FormContainerProps } from './form-interface'
 import formItem from './form-item.vue'
-import type { FormConfig, FormContainerProps } from './form-provider'
-import { formConfigProviderKey } from './form-provider'
 
 const formData = defineModel<Data>({ default: reactive({}) })
 
@@ -46,6 +46,4 @@ const props = withDefaults(defineProps<FormContainerProps<Data>>(), {
 const formConfig = computed<FormConfig>(() => {
   return _.omit(props, 'items')
 })
-
-provide(formConfigProviderKey, formConfig)
 </script>

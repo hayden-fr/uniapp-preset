@@ -161,56 +161,51 @@ import optionPicker from '@/components/commons/option-picker/option-picker.vue'
 import passwordInput from '@/components/commons/password-input/password-input.vue'
 import textInput from '@/components/commons/text-input/text-input.vue'
 import textareaInput from '@/components/commons/textarea-input/textarea-input.vue'
-import { formConfigProviderKey } from './form-provider'
+import { type FormConfig } from './form-interface'
 
 interface Props {
   /**
    * 表单项配置
    */
   item: FormItem<Data>
+  /**
+   * 表单配置
+   */
+  config: FormConfig
 }
 
 const props = defineProps<Props>()
 
 const modelValue = defineModel<any>()
 
-const formConfig = computed(() => {
-  const config = inject(formConfigProviderKey)
-  return toValue(config)
-})
+const disabled = computed(() => props.item.disabled ?? props.config.disabled)
 
-const disabled = computed(
-  () => props.item.disabled ?? formConfig.value?.disabled,
-)
-
-const readonly = computed(
-  () => props.item.readonly ?? formConfig.value?.readonly,
-)
+const readonly = computed(() => props.item.readonly ?? props.config.readonly)
 
 const emptyValue = computed(
-  () => props.item.emptyValue ?? formConfig.value?.emptyValue,
+  () => props.item.emptyValue ?? props.config.emptyValue,
 )
 
 const labelPosition = computed(
-  () => props.item.labelPosition ?? formConfig.value?.labelPosition,
+  () => props.item.labelPosition ?? props.config.labelPosition,
 )
 
 const labelWidth = computed(
-  () => props.item.labelWidth ?? formConfig.value?.labelWidth,
+  () => props.item.labelWidth ?? props.config.labelWidth,
 )
 
 const labelAlign = computed(
-  () => props.item.labelAlign ?? formConfig.value?.labelAlign,
+  () => props.item.labelAlign ?? props.config.labelAlign,
 )
 
-const border = computed(() => formConfig.value?.border)
+const border = computed(() => props.config.border)
 
-const classNames = computed(() => formConfig.value?.classNames)
+const classNames = computed(() => props.config.classNames)
 
-const styles = computed(() => formConfig.value?.styles)
+const styles = computed(() => props.config.styles)
 
 const validationMessage = computed(() => {
-  const validation = toValue(formConfig.value?.itemsValidation)
+  const validation = toValue(props.config.itemsValidation)
   return validation?.[props.item.field]?.message
 })
 </script>

@@ -1,5 +1,3 @@
-import type { InjectionKey } from 'vue'
-
 type FormItemSemanticDOM =
   | 'item'
   | 'label'
@@ -177,7 +175,3 @@ export interface FormContainerProps<Data extends AnyObject = any> {
 }
 
 export type FormConfig = Omit<FormContainerProps, 'items'>
-
-export const formConfigProviderKey = Symbol() as InjectionKey<
-  MaybeRefOrGetter<FormConfig>
->
