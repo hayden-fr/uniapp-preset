@@ -60,7 +60,7 @@ declare module 'vue' {
   }
 }
 
-interface CacheOptions {
+export interface CacheOptions {
   prefix?: string
 }
 

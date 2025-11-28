@@ -428,10 +428,10 @@ declare module 'vue' {
   }
 }
 
-type UniRequestOptions = UniHttpRequestConstructorOptions
+export type RequestOptions = UniHttpRequestConstructorOptions
 
 class Request {
-  install(app: VueApp, options: UniRequestOptions = {}) {
+  install(app: VueApp, options: RequestOptions = {}) {
     instance.value = new UniHttpRequest({
       ...options,
       init: options.init ?? app.config.globalProperties.$init.promise,

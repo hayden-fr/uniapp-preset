@@ -245,7 +245,7 @@ declare module 'vue' {
   }
 }
 
-interface RouterOptions {
+export interface RouterOptions {
   beforeEach?: UniRouterEachInterceptor
   afterEach?: UniRouterEachInterceptor
 }

@@ -87,8 +87,10 @@ declare module 'vue' {
 
 const instance = shallowRef({} as UniInitialization)
 
+export type InitializationCallback = () => void | Promise<void>
+
 class Initialization {
-  install(app: VueApp, init?: () => void | Promise<void>) {
+  install(app: VueApp, init?: InitializationCallback) {
     instance.value = new UniInitialization({
       logging: app.config.globalProperties.$logging,
     })

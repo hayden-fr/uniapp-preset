@@ -12,7 +12,7 @@ declare module 'vue' {
   }
 }
 
-interface StoreOptions {
+export interface StoreOptions {
   /**
    * store 更新时触发
    */
