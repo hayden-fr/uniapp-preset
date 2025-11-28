@@ -5,13 +5,28 @@ class UniCache {
     return `${this.prefix}${key}`
   }
 
-  set(key: string, value: any) {
-    uni.setStorageSync(this.getStorageKey(key), value)
+  set(key: string, value: any, expire?: number) {
+    const type = typeof value
+    const data = {
+      type: type,
+      value: value,
+      expire: expire ? Date.now() + expire : null,
+    }
+    uni.setStorageSync(this.getStorageKey(key), data)
   }
 
   get<T = any>(key: string): T | undefined {
     const storageKey = this.getStorageKey(key)
-    return this.has(key) ? uni.getStorageSync(storageKey) : undefined
+    if (this.has(key)) {
+      const data = uni.getStorageSync(storageKey)
+      const { value, expire } = data
+      if (expire && expire < Date.now()) {
+        this.remove(key)
+        return undefined
+      }
+      return value
+    }
+    return undefined
   }
 
   has(key: string): boolean {
