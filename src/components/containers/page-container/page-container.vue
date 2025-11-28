@@ -18,6 +18,7 @@
     <view v-if="isCustomNavigationBar && showNavigationBar">
       <slot
         name="navigation-bar"
+        :show-back-btn="showBackBtn"
         :statusBarHeight="statusBarHeight"
         :navigationBarHeight="navigationBarHeight"
         :height="statusBarHeight + navigationBarHeight"
