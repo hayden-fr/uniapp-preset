@@ -98,6 +98,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const active = defineModel<Value>()
 
+const emits = defineEmits<{
+  change: [value: Value]
+}>()
+
 onMounted(() => {
   if (!active.value) {
     active.value = props.defaultValue || props.items[0]?.value
@@ -221,5 +225,6 @@ const semanticStyle = computed(() => {
 
 const handleClick = (item: TabItem<Value>) => {
   active.value = item.value
+  emits('change', item.value)
 }
 </script>
