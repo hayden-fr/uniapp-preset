@@ -16,9 +16,8 @@ export const useFormContainer = <Data extends AnyObject>(
    * 验证表单项
    *
    * @param errorPrompt 如何提示错误信息 toast | static
-   * - toast: 使用消息提示框进行错误提示，并且在某一项规则验证不通过时，立即停止后面的规则的校验
-   * - form-item: 在所有验证失败的表单项下方显示错误信息，会验证所有的表单项
-   *
+   * - toast: 使用消息提示框进行错误提示，并且在某一项规则验证不通过时，立即停止后面所有规则的校验
+   * - form-item: 在所有验证失败的表单项下方显示错误信息，在表单项规则校验失败时，进行下一个表单项的校验
    */
   const validate = async (
     errorPrompt: ErrorPromptType = defaultErrorPrompt,
@@ -30,12 +29,14 @@ export const useFormContainer = <Data extends AnyObject>(
     const formItems = toValue(options.items)
 
     for (const item of formItems) {
+      let itemError = false
       const throwError = (message: string) => {
         if (errorPrompt === 'toast') {
           throw new Error(message)
         }
         if (errorPrompt === 'form-item') {
           hasError = true
+          itemError = true
           itemsValidation.value[item.field] = { message }
         }
       }
@@ -43,6 +44,10 @@ export const useFormContainer = <Data extends AnyObject>(
       const rules = item.rules ?? []
       const value = formData[item.field]
       for (const rule of rules) {
+        if (itemError) {
+          continue
+        }
+
         // 自定义校验
         if (rule.validator) {
           await rule.validator(rule, value, throwError)
@@ -55,13 +60,13 @@ export const useFormContainer = <Data extends AnyObject>(
               ? rule.pattern
               : new RegExp(rule.pattern)
           if (!pattern.test(value)) {
-            throwError(rule.message || `"${item.label}"不符合校验规则`)
+            throwError(rule.message || `${item.label}不符合校验规则`)
           }
         }
         // 必填校验
         if (rule.required) {
           if (_.isNil(value) || value === '') {
-            throwError(rule.message || `"${item.label}"为必填项`)
+            throwError(rule.message || `${item.label}为必填项`)
           }
         }
         // 长度校验
@@ -88,23 +93,23 @@ export const useFormContainer = <Data extends AnyObject>(
         }
         if (typeof rule.len === 'number') {
           validateValueLen(value, (val) => val === rule.len!, {
-            string: `"${item.label}"长度必须为${rule.len}`,
-            number: `"${item.label}"必须为${rule.len}`,
-            array: `"${item.label}"长度必须为${rule.len}`,
+            string: `${item.label}长度必须为${rule.len}`,
+            number: `${item.label}必须为${rule.len}`,
+            array: `${item.label}长度必须为${rule.len}`,
           })
         }
         if (typeof rule.min === 'number') {
           validateValueLen(value, (val) => val >= rule.min!, {
-            string: `"${item.label}"长度必须大于等于${rule.min}`,
-            number: `"${item.label}"必须大于等于${rule.min}`,
-            array: `"${item.label}"长度必须大于等于${rule.min}`,
+            string: `${item.label}长度必须大于等于${rule.min}`,
+            number: `${item.label}必须大于等于${rule.min}`,
+            array: `${item.label}长度必须大于等于${rule.min}`,
           })
         }
         if (typeof rule.max === 'number') {
           validateValueLen(value, (val) => val <= rule.max!, {
-            string: `"${item.label}"长度必须小于等于${rule.max}`,
-            number: `"${item.label}"必须小于等于${rule.max}`,
-            array: `"${item.label}"长度必须小于等于${rule.max}`,
+            string: `${item.label}长度必须小于等于${rule.max}`,
+            number: `${item.label}必须小于等于${rule.max}`,
+            array: `${item.label}长度必须小于等于${rule.max}`,
           })
         }
       }
