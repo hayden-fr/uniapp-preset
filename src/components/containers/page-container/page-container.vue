@@ -25,6 +25,7 @@
       >
         <custom-navigation-bar
           :route="route"
+          :show-back-btn="showBackBtn"
           :status-bar-height="statusBarHeight"
           :navigation-bar-height="navigationBarHeight"
         ></custom-navigation-bar>
