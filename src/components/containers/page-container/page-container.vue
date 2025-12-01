@@ -46,14 +46,14 @@
     <view class="w-full">
       <!-- 自定义底部导航栏 -->
       <custom-tabbar
-        v-if="route.isTabBar && tabBar && isCustomTabbar"
+        v-if="isCustomTabbar && route.isTabBar && tabBar"
         :route="route"
         :tabbar="tabBar"
       ></custom-tabbar>
 
       <!-- 底部安全区 -->
       <view
-        v-if="(!route.isTabBar && showBottomSafeArea) || isCustomTabbar"
+        v-if="route.isTabBar ? isCustomTabbar : showBottomSafeArea"
         role="safe-bottom"
         class="w-full"
         :style="[{ height: safeBottomHeight + 'px' }]"
