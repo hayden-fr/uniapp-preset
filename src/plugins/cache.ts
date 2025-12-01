@@ -1,8 +1,8 @@
 class UniCache {
-  constructor(private prefix: string = 'uni_') {}
+  constructor(private prefix?: string) {}
 
   getStorageKey(key: string) {
-    return `${this.prefix}${key}`
+    return this.prefix ? `${this.prefix}-${key}` : key
   }
 
   set(key: string, value: any, expire?: number) {

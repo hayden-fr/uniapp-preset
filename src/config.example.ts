@@ -46,7 +46,7 @@ export const defineOptions: DefineOptionsFn = (app) => {
   return {
     // 缓存配置
     cache: {
-      prefix: 'app-',
+      prefix: 'app',
     },
 
     // 初始化配置
