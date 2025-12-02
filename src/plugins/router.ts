@@ -24,29 +24,33 @@ interface PageInstance {
 }
 
 class UniRouter {
-  readonly globalStyle: Readonly<UniPageStyle>
+  globalStyle: UniPageStyle
 
-  readonly pages: readonly UniPage[]
+  pages: UniPage[]
 
-  readonly tabBar?: UniTabBar
+  tabBar: UniTabBar
 
-  readonly uniIdRouter?: UniIdRouter
+  uniIdRouter?: UniIdRouter
 
-  private readonly pagesMap: Record<string, UniPage | undefined> = {}
+  private pagesMap: Record<string, UniPage | undefined> = {}
 
-  readonly homePageRoute: string
+  homePageRoute: string
 
-  readonly loginPageRoute: string | undefined
+  loginPageRoute: string | undefined
 
   readonly init: Promise<void>
 
   constructor(options: { appConfig: UniAppPagesConfig; init: Promise<void> }) {
     this.init = options.init
     const appConfig = options.appConfig
-    this.globalStyle = Object.freeze(appPagesConfig.globalStyle ?? {})
-    this.pages = Object.freeze(appConfig.pages ?? [])
-    this.tabBar = Object.freeze(appConfig.tabBar)
-    this.uniIdRouter = Object.freeze(appConfig.uniIdRouter)
+    this.globalStyle = appPagesConfig.globalStyle ?? {}
+    this.pages = appConfig.pages ?? []
+    this.tabBar = appConfig.tabBar ?? {
+      color: 'black',
+      selectedColor: 'black',
+      list: [],
+    }
+    this.uniIdRouter = appConfig.uniIdRouter
 
     const $pagesMap: Record<string, UniPage | undefined> = {}
     for (const page of this.pages) {
