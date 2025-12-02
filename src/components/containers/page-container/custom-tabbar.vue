@@ -10,6 +10,7 @@
         :selected-color="tabbar.selectedColor"
         :icon-path="item.iconPath"
         :selected-icon-path="item.selectedIconPath"
+        :badge="item.badge"
       >
       </custom-tabbar-item>
     </view>

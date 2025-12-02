@@ -1,4 +1,5 @@
 import appPagesConfig from '@/pages.json'
+import type { InjectionKey } from 'vue'
 
 declare global {
   interface UniRoute extends Omit<Required<UniPage>, 'path'> {
@@ -23,6 +24,9 @@ interface PageInstance {
   }
 }
 
+type TabBarBadge = Record<number, boolean | string>
+const tabBarBadgeKey = Symbol('tabBarBadge') as InjectionKey<Ref<TabBarBadge>>
+
 class UniRouter {
   globalStyle: UniPageStyle
 
@@ -39,6 +43,8 @@ class UniRouter {
   loginPageRoute: string | undefined
 
   readonly init: Promise<void>
+
+  badge: Ref<TabBarBadge>
 
   constructor(options: { appConfig: UniAppPagesConfig; init: Promise<void> }) {
     this.init = options.init
@@ -62,6 +68,8 @@ class UniRouter {
     this.homePageRoute = this.pages[0].path
 
     this.loginPageRoute = this.uniIdRouter?.loginPage
+
+    this.badge = ref({})
 
     this.initialize()
   }
@@ -235,6 +243,57 @@ class UniRouter {
       }
       return uni_reLaunch({ ...options, url: `/${homePageRoute}` })
     }
+
+    const badge = ref<TabBarBadge>({})
+    this.badge = badge
+
+    // 拦截 tabBar 徽章设置
+    if (this.tabBar.custom) {
+      uni.setTabBarBadge = function (
+        options: UniNamespace.SetTabBarBadgeOptions,
+      ) {
+        badge.value[options.index] = options.text
+
+        if (options.success) {
+          options.success(void 0)
+          return
+        }
+        return Promise.resolve(void 0)
+      }
+
+      uni.removeTabBarBadge = function (
+        options: UniNamespace.RemoveTabBarBadgeOptions,
+      ) {
+        delete badge.value[options.index]
+        if (options.success) {
+          options.success(void 0)
+          return
+        }
+        return Promise.resolve(void 0)
+      }
+
+      uni.showTabBarRedDot = function (
+        options: UniNamespace.ShowTabBarRedDotOptions,
+      ) {
+        badge.value[options.index] = true
+        if (options.success) {
+          options.success(void 0)
+          return
+        }
+        return Promise.resolve(void 0)
+      }
+
+      uni.hideTabBarRedDot = function (
+        options: UniNamespace.HideTabBarRedDotOptions,
+      ) {
+        delete badge.value[options.index]
+        if (options.success) {
+          options.success(void 0)
+          return
+        }
+        return Promise.resolve(void 0)
+      }
+    }
   }
 }
 
@@ -269,6 +328,7 @@ class Router {
       instance.value.register('afterEach', afterEach)
     }
     app.config.globalProperties.$$router = instance.value
+    app.provide(tabBarBadgeKey, instance.value.badge)
 
     // 等待页面初始化完成
     app.config.globalProperties.$init.register({
@@ -300,8 +360,13 @@ export function useRoute() {
     return instance.value.pages
   })
 
+  const badge = inject(tabBarBadgeKey, ref<TabBarBadge>({}))
+
   const tabBar = computed(() => {
-    return instance.value.tabBar
+    const list = instance.value.tabBar.list.map((item, index) => {
+      return Object.assign({}, item, { badge: badge.value[index] })
+    })
+    return Object.assign({}, instance.value.tabBar, { list })
   })
 
   const uniIdRouter = computed(() => {

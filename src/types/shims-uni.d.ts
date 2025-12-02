@@ -37,6 +37,7 @@ declare global {
     text: string
     iconPath?: string
     selectedIconPath?: string
+    badge?: boolean | string
   }
 
   interface UniTabBar {
