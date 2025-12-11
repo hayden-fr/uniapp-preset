@@ -8,6 +8,7 @@
         :text="item.text"
         :color="tabbar.color"
         :selected-color="tabbar.selectedColor"
+        :iconfont="item.iconfont"
         :icon-path="item.iconPath"
         :selected-icon-path="item.selectedIconPath"
         :badge="item.badge"

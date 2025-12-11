@@ -32,9 +32,18 @@ declare global {
     style?: UniPageStyle
   }
 
+  interface UniTabBarItemIconFont {
+    text?: string
+    color?: string
+    fontSize?: string
+    selectedColor?: string
+    selectedText?: string
+  }
+
   interface UniTabBarItem {
     pagePath: string
     text: string
+    iconfont?: UniTabBarItemIconFont
     iconPath?: string
     selectedIconPath?: string
     badge?: boolean | string
