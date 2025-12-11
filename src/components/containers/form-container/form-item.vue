@@ -99,9 +99,142 @@
   </view>
 </template>
 
+<script lang="ts">
+type BaseFormItem<Data extends AnyObject = any> = {
+  /**
+   * 字段名
+   */
+  field: keyof Data | `_${string}`
+  /**
+   * 表单项标签，如果设置为 false，则不显示标签
+   */
+  label?: string | false
+  /**
+   * 表单项验证规则
+   */
+  rules?: FormRuleItem[]
+  /**
+   * 是否必填
+   */
+  required?: boolean
+  /**
+   * 是否禁用
+   */
+  disabled?: boolean
+  /**
+   * 是否只读
+   */
+  readonly?: boolean
+  /**
+   * 只读模式下，当值为空时的占位符
+   */
+  emptyValue?: string
+  /**
+   * 表单项标签位置
+   */
+  labelPosition?: FormItemLabelPositionType
+  /**
+   * 表单项标签宽度
+   */
+  labelWidth?: string
+  /**
+   * 表单项标签对齐方式
+   */
+  labelAlign?: FormItemLabelAlignType
+  /**
+   * 表单项语义化结构 class
+   */
+  classNames?: Semantic<FormItemSemanticDOM, ClassNameValue>
+  /**
+   * 表单项语义化结构 style
+   */
+  styles?: Semantic<FormItemSemanticDOM, StyleValue>
+}
+
+/**
+ * 自定义项
+ */
+interface FormItemCustom {
+  type: 'custom'
+}
+
+type ComponentFormItem =
+  | FormItemCustom
+  | {
+      [K in keyof FieldItem]: { type: K } & FieldItem[K]
+    }[keyof FieldItem]
+
+declare global {
+  type FormItemSemanticDOM =
+    | 'item'
+    | 'label'
+    | 'required'
+    | 'input'
+    | 'validation'
+
+  /**
+   * 表单项
+   */
+  type FormItem<Data extends AnyObject = any> = BaseFormItem<Data> &
+    ComponentFormItem
+
+  /**
+   * 表单项标签位置
+   */
+  type FormItemLabelPositionType = 'left' | 'top' | false
+
+  /**
+   * 表单项标签对齐方式
+   */
+  type FormItemLabelAlignType = 'left' | 'center' | 'right'
+}
+</script>
+
 <script setup lang="ts" generic="Data extends Record<string, any> = object">
 import field from '@/components/field/field.vue'
-import { type FormConfig } from './form-interface'
+
+interface FormConfig {
+  /**
+   * 是否禁用
+   */
+  disabled?: boolean
+  /**
+   * 是否只读
+   */
+  readonly?: boolean
+  /**
+   * 只读模式下，当值为空时的占位符
+   */
+  emptyValue?: string
+  /**
+   * 表单项标签位置
+   */
+  labelPosition?: FormItemLabelPositionType
+  /**
+   * 表单项标签宽度
+   */
+  labelWidth?: string
+  /**
+   * 表单项标签对齐方式
+   */
+  labelAlign?: FormItemLabelAlignType
+  /**
+   * 是否显示边框
+   */
+  border?: boolean
+  /**
+   * 表单项验证结果
+   */
+  itemsValidation?: MaybeRefOrGetter<FormItemError<Data>>
+  /**
+   * 语义化结构 class
+   */
+  classNames?: Semantic<FormContainerSemanticDOM, ClassNameValue>
+  /**
+   * 语义化结构 style
+   */
+  styles?: Semantic<FormContainerSemanticDOM, StyleValue>
+}
 
 interface Props {
   /**
