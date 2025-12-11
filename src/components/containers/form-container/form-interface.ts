@@ -67,13 +67,9 @@ interface FormItemCustom {
 
 type ComponentFormItem =
   | FormItemCustom
-  | FormItemTextInput
-  | FormItemTextareaInput
-  | FormItemPasswordInput
-  | FormItemNumberInput
-  | FormItemDatePicker
-  | FormItemOptionPicker
-  | FormItemLogicInput
+  | {
+      [K in keyof FieldItem]: { type: K } & FieldItem[K]
+    }[keyof FieldItem]
 
 declare global {
   /**
@@ -109,16 +105,6 @@ declare global {
    * 表单项标签对齐方式
    */
   type FormItemLabelAlignType = 'left' | 'center' | 'right'
-
-  /**
-   * 生成表单项参数
-   */
-  type GenericFormItem<
-    Type extends string,
-    Props extends Record<string, any>,
-  > = Omit<Props, keyof BaseFormItem> & {
-    type: Type
-  }
 
   /**
    * 表单项

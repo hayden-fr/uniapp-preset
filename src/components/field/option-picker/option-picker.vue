@@ -72,7 +72,9 @@ interface Props {
 }
 
 declare global {
-  type FormItemOptionPicker = GenericFormItem<'option', Props>
+  interface FieldItem {
+    option: Props
+  }
 }
 
 const props = withDefaults(defineProps<Props>(), {

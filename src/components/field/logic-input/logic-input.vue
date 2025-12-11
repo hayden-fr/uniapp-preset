@@ -63,7 +63,9 @@ interface Props {
 }
 
 declare global {
-  type FormItemLogicInput = GenericFormItem<'logic', Props>
+  interface FieldItem {
+    logic: Props
+  }
 }
 
 const props = withDefaults(defineProps<Props>(), {

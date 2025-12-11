@@ -60,7 +60,9 @@ interface Props {
 }
 
 declare global {
-  type FormItemDatePicker = GenericFormItem<'date', Props>
+  interface FieldItem {
+    date: Props
+  }
 }
 
 const props = defineProps<Props>()

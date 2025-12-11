@@ -64,7 +64,9 @@ interface Props {
 }
 
 declare global {
-  type FormItemPasswordInput = GenericFormItem<'password', Props>
+  interface FieldItem {
+    password: Props
+  }
 }
 
 const props = defineProps<Props>()

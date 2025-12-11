@@ -72,68 +72,14 @@
             ></slot>
           </template>
 
-          <logic-input
-            v-else-if="item.type === 'logic'"
-            :readonly="readonly"
-            :empty-value="emptyValue"
-            :disabled="disabled"
-            v-bind="item"
-            v-model="modelValue"
-          ></logic-input>
-
-          <option-picker
-            v-else-if="item.type === 'option'"
-            :readonly="readonly"
-            :empty-value="emptyValue"
-            :disabled="disabled"
-            v-bind="item"
-            v-model="modelValue"
-          ></option-picker>
-
-          <date-picker
-            v-else-if="item.type === 'date'"
-            :readonly="readonly"
-            :empty-value="emptyValue"
-            :disabled="disabled"
-            v-bind="item"
-            v-model="modelValue"
-          ></date-picker>
-
-          <number-input
-            v-else-if="item.type === 'number'"
-            :readonly="readonly"
-            :empty-value="emptyValue"
-            :disabled="disabled"
-            v-bind="item"
-            v-model="modelValue"
-          ></number-input>
-
-          <password-input
-            v-else-if="item.type === 'password'"
-            :readonly="readonly"
-            :empty-value="emptyValue"
-            :disabled="disabled"
-            v-bind="item"
-            v-model="modelValue"
-          ></password-input>
-
-          <textarea-input
-            v-else-if="item.type === 'textarea'"
-            :readonly="readonly"
-            :empty-value="emptyValue"
-            :disabled="disabled"
-            v-bind="item"
-            v-model="modelValue"
-          ></textarea-input>
-
-          <text-input
+          <field
             v-else
             :readonly="readonly"
             :empty-value="emptyValue"
             :disabled="disabled"
             v-bind="item"
             v-model="modelValue"
-          ></text-input>
+          ></field>
         </view>
       </view>
       <slot :name="`${item.field.toString()}-suffix`"></slot>
@@ -154,13 +100,7 @@
 </template>
 
 <script setup lang="ts" generic="Data extends Record<string, any> = object">
-import datePicker from '@/components/commons/date-picker/date-picker.vue'
-import logicInput from '@/components/commons/logic-input/logic-input.vue'
-import numberInput from '@/components/commons/number-input/number-input.vue'
-import optionPicker from '@/components/commons/option-picker/option-picker.vue'
-import passwordInput from '@/components/commons/password-input/password-input.vue'
-import textInput from '@/components/commons/text-input/text-input.vue'
-import textareaInput from '@/components/commons/textarea-input/textarea-input.vue'
+import field from '@/components/field/field.vue'
 import { type FormConfig } from './form-interface'
 
 interface Props {

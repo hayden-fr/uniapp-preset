@@ -71,7 +71,9 @@ interface Props {
 }
 
 declare global {
-  type FormItemTextareaInput = GenericFormItem<'textarea', Props>
+  interface FieldItem {
+    textarea: Props
+  }
 }
 
 const props = withDefaults(defineProps<Props>(), {

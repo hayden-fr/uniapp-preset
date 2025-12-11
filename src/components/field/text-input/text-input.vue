@@ -54,7 +54,9 @@ interface Props {
 }
 
 declare global {
-  type FormItemTextInput = GenericFormItem<'text', Props>
+  interface FieldItem {
+    text: Props
+  }
 }
 
 const props = defineProps<Props>()
