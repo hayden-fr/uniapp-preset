@@ -106,6 +106,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const modelValue = defineModel<any>()
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 const mergedProps = computed<any>(() => {
   return Object.assign(
     {},
