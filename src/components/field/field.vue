@@ -40,6 +40,12 @@
     v-model="modelValue"
     v-bind="mergedProps"
   ></logic-input>
+
+  <empty-content
+    v-else
+    v-model="modelValue"
+    v-bind="mergedProps"
+  ></empty-content>
 </template>
 
 <script lang="ts">
@@ -58,6 +64,7 @@ declare global {
 
 <script setup lang="ts" generic="Type extends FieldType">
 import datePicker from './date-picker/date-picker.vue'
+import emptyContent from './empty-content/empty-content.vue'
 import logicInput from './logic-input/logic-input.vue'
 import numberInput from './number-input/number-input.vue'
 import optionPicker from './option-picker/option-picker.vue'
