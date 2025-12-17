@@ -5,16 +5,22 @@
       :key="item.field"
       :item="item"
       :config="formConfig"
+      :error-message="itemsValidation[item.field]"
       v-model="formData[item.field]"
+      :field="item.field"
+      :slots="$slots"
     >
-      <template #[item.field]>
-        <slot
-          :name="item.field"
-          :readonly="readonly"
-          :empty-value="emptyValue"
-          :disabled="disabled"
-          :item="item"
-        ></slot>
+      <template #[`${item.field.toString()}-label`]>
+        <slot :name="`${item.field.toString()}-label`"></slot>
+      </template>
+      <template #[`${item.field.toString()}-label-suffix`]>
+        <slot :name="`${item.field.toString()}-label-suffix`"></slot>
+      </template>
+      <template #[`${item.field.toString()}-prefix`]>
+        <slot :name="`${item.field.toString()}-prefix`"></slot>
+      </template>
+      <template #[`${item.field.toString()}`]>
+        <slot :name="`${item.field.toString()}`"></slot>
       </template>
       <template #[`${item.field.toString()}-suffix`]>
         <slot :name="`${item.field.toString()}-suffix`"></slot>
@@ -25,28 +31,8 @@
 
 <script lang="ts">
 declare global {
-  /**
-   * 表单校验规则
-   */
-  interface FormRuleItem<data extends AnyObject = any> {
-    len?: number
-    min?: number
-    max?: number
-    required?: boolean
-    message?: string
-    pattern?: RegExp
-    trigger?: string
-    validator?: (
-      rule: FormRuleItem<data>,
-      value: data,
-      throwError: (message: string) => void,
-    ) => void | Promise<void>
-  }
-
   type FormItemError<Data extends AnyObject = AnyObject> = {
-    [k in FormItem<Data>['field']]?: {
-      message?: string
-    }
+    [k in FormItem<Data>['field']]?: FormItemErrorMessage
   }
 
   type FormContainerSemanticDOM = 'root' | FormItemSemanticDOM
@@ -56,15 +42,7 @@ declare global {
 <script setup lang="ts" generic="Data extends Record<string, any> = object">
 import formItem from './form-item.vue'
 
-interface FormContainerProps<Data extends AnyObject = any> {
-  /**
-   * 表单数据项
-   */
-  items?: FormItem<Data>[]
-  /**
-   * 表单项验证结果
-   */
-  itemsValidation?: MaybeRefOrGetter<FormItemError<Data>>
+interface FormItemInjectProps {
   /**
    * 是否禁用
    */
@@ -88,7 +66,11 @@ interface FormContainerProps<Data extends AnyObject = any> {
   /**
    * 表单项标签对齐方式
    */
-  labelAlign?: FormItemLabelAlignType
+  labelAlign?: TextAlignType
+  /**
+   * 表单项内容对齐方式
+   */
+  contentAlign?: TextAlignType
   /**
    * 是否显示边框
    */
@@ -103,23 +85,32 @@ interface FormContainerProps<Data extends AnyObject = any> {
   styles?: Semantic<FormContainerSemanticDOM, StyleValue>
 }
 
+interface Props extends FormItemInjectProps {
+  /**
+   * 表单数据项
+   */
+  items?: FormItem<Data>[]
+  /**
+   * 表单项验证结果
+   */
+  itemsValidation?: FormItemError<Data>
+}
+
 const formData = defineModel<Data>({ default: reactive({}) })
 
-const props = withDefaults(defineProps<FormContainerProps<Data>>(), {
+const props = withDefaults(defineProps<Props>(), {
   items: () => [],
   itemsValidation: () => ({}),
   disabled: false,
   readonly: false,
   emptyValue: '-',
   labelPosition: 'left',
-  labelWidth: '4rem',
-  labelAlign: 'left',
   border: true,
   classNames: () => ({}),
   styles: () => ({}),
 })
 
 const formConfig = computed<any>(() => {
-  return _.omit(props, 'items')
+  return _.omit(props, 'items', 'itemsValidation')
 })
 </script>

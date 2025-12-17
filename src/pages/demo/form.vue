@@ -32,7 +32,7 @@
         label-position="top"
         :border="false"
         :classNames="{
-          input: 'border rounded-xl h-12 px-4 bg-gray-100',
+          content: 'border rounded-xl h-12 px-4 bg-gray-100',
         }"
       >
         <template #code-suffix>
@@ -55,9 +55,7 @@
       <easycom-form-container
         ref="ruleFormRef"
         v-model="ruleFormData"
-        :items="ruleFormItems"
-        :items-validation="ruleForm.itemsValidation"
-        label-width="5rem"
+        v-bind="ruleFormProps"
       ></easycom-form-container>
       <view class="flex flex-col gap-4 p-4">
         <easycom-button type="primary" @click="toastValidate">
@@ -74,7 +72,7 @@
 <script setup lang="ts">
 type BaseFormData = {
   labelPosition?: FormItemLabelPositionType
-  labelAlign: FormItemLabelAlignType
+  labelAlign: TextAlignType
   readonly: boolean
   [k: string]: any
 }
@@ -241,7 +239,6 @@ const loginItems = computed(() => {
   return items
 })
 
-const ruleFormRef = ref()
 const ruleFormData = ref<any>({})
 const ruleFormItems = computed(() => {
   const items: FormItem[] = [
@@ -250,6 +247,7 @@ const ruleFormItems = computed(() => {
       label: '必填项校验',
       type: 'text',
       placeholder: '必填项校验',
+      required: true,
       rules: [{ required: true, message: '请输入ITEM1的内容' }],
     },
     {
@@ -265,12 +263,13 @@ const ruleFormItems = computed(() => {
       type: 'text',
       icon: 'i-tabler-user',
       placeholder: '请输入用户名',
+      required: true,
       rules: [{ required: true, message: '请输入用户名' }],
       labelPosition: 'top',
       classNames: {
         item: 'border-none mb-2',
-        input: 'border rounded-xl h-12 px-4 bg-gray-100',
-        validation: '-bottom-4',
+        content: 'border rounded-xl h-12 px-4 bg-gray-100',
+        errorMessage: '-bottom-4',
       },
     },
     {
@@ -282,7 +281,7 @@ const ruleFormItems = computed(() => {
       labelPosition: 'top',
       classNames: {
         item: 'border-none',
-        input: 'border rounded-xl h-12 px-4 bg-gray-100',
+        content: 'border rounded-xl h-12 px-4 bg-gray-100',
       },
     },
     {
@@ -295,7 +294,7 @@ const ruleFormItems = computed(() => {
       labelPosition: 'top',
       classNames: {
         item: 'border-none',
-        input: 'border rounded-xl h-12 px-4 bg-gray-100',
+        content: 'border rounded-xl h-12 px-4 bg-gray-100',
       },
     },
   ]
@@ -306,6 +305,7 @@ const ruleForm = useFormContainer({
   data: ruleFormData,
   items: ruleFormItems,
 })
+const { formProps: ruleFormProps } = ruleForm
 
 const toastValidate = async () => {
   try {

@@ -30,7 +30,11 @@ export const useFormContainer = <Data extends AnyObject>(
 
     for (const item of formItems) {
       let itemError = false
-      const throwError = (message: string) => {
+      const throwError = (errorOrMessage: Error | string) => {
+        const message =
+          errorOrMessage instanceof Error
+            ? errorOrMessage.message
+            : errorOrMessage
         if (errorPrompt === 'toast') {
           throw new Error(message)
         }
@@ -42,6 +46,10 @@ export const useFormContainer = <Data extends AnyObject>(
       }
 
       const rules = item.rules ?? []
+      if (item.required) {
+        rules.push({ required: true })
+      }
+
       const value = formData[item.field]
       for (const rule of rules) {
         if (itemError) {
@@ -50,7 +58,7 @@ export const useFormContainer = <Data extends AnyObject>(
 
         // 自定义校验
         if (rule.validator) {
-          await rule.validator(rule, value, throwError)
+          await rule.validator(rule, value).catch(throwError)
           continue
         }
         // 正则校验

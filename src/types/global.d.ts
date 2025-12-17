@@ -66,4 +66,9 @@ declare global {
    * 组件尺寸
    */
   type ComponentSize = 'mini' | 'small' | 'medium' | 'large'
+
+  /**
+   * 文本对齐方式
+   */
+  type TextAlignType = 'left' | 'center' | 'right'
 }
