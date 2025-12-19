@@ -98,6 +98,7 @@ type SemanticDOM = 'root' | 'content'
 
 withDefaults(defineProps<Props>(), {
   scrollable: false,
+  showBackBtn: true,
   showNavigationBar: true,
   showBottomSafeArea: true,
 })
