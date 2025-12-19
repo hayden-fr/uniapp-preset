@@ -4,7 +4,7 @@
       <view :class="requiredClassNames" :style="requiredStyles">*</view>
 
       <view :class="titleClassNames" :style="titleStyles">
-        <view :class="labelClassNames" :style="labelStyle">
+        <view :class="labelClassNames" :style="labelStyles">
           <slot
             v-if="_slots[`${item.field.toString()}-label`]"
             :name="`${item.field.toString()}-label`"
@@ -27,7 +27,7 @@
         <view
           v-if="showLabel && labelPosition === 'left'"
           :class="labelClassNames"
-          :style="labelStyle"
+          :style="labelStyles.concat({ width: labelWidth })"
         ></view>
         <slot
           v-if="_slots[`${item.field.toString()}-prefix`]"
@@ -241,6 +241,24 @@ const labelPosition = computed(
   () => props.item.labelPosition ?? props.config.labelPosition,
 )
 
+const labelWidth = ref<string>()
+const updateLabelWidth = (query: UniNamespace.SelectorQuery) => {
+  query
+    .select('.form-item-label')
+    .boundingClientRect((rect) => {
+      const { width } = rect as UniApp.NodeInfo
+      labelWidth.value = width ? `${width}px` : 'auto'
+    })
+    .exec()
+}
+const selectorQuery = useSelectorQuery(updateLabelWidth)
+watch(
+  () => props.item.label,
+  () => {
+    updateLabelWidth(selectorQuery!)
+  },
+)
+
 /**
  * 表单标题 class
  */
@@ -281,7 +299,7 @@ const titleStyles = computed(() => {
  * 表单标签 class
  */
 const labelClassNames = computed(() => {
-  const classNames: ClassNameValue = ['shrink-0']
+  const classNames: ClassNameValue = ['form-item-label', 'shrink-0 mr-2']
   if (props.item.classNames?.label) {
     classNames.push(props.item.classNames.label)
   }
@@ -294,7 +312,7 @@ const labelClassNames = computed(() => {
 /**
  * 表单标签样式，合并了配置属性和自定义属性
  */
-const labelStyle = computed(() => {
+const labelStyles = computed(() => {
   const style: StyleValue = {}
   const styles: StyleValue = [style]
 
