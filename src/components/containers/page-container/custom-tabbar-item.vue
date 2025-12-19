@@ -10,7 +10,7 @@
         <view v-else :class="iconfont" class="text-6"></view>
       </view>
       <view v-else-if="iconPath">
-        <image class="h-7 w-7" :src="iconPath" mode="scaleToFill" />
+        <image class="block h-6 w-6" :src="iconPath" mode="scaleToFill" />
       </view>
       <view :class="[iconfont || iconPath ? 'text-xs' : '']">{{ text }}</view>
       <view v-if="badge" class="absolute right-0 top-0 text-xs">
