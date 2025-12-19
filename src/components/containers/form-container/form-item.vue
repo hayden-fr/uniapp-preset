@@ -11,11 +11,12 @@
           ></slot>
           <template v-else>{{ item.label }}</template>
         </view>
-        <slot
-          v-if="_slots[`${item.field.toString()}-label-suffix`]"
-          :name="`${item.field.toString()}-label-suffix`"
-        ></slot>
-        <view v-else class="pointer-events-none flex-1"></view>
+        <view class="flex-1">
+          <slot
+            v-if="_slots[`${item.field.toString()}-label-suffix`]"
+            :name="`${item.field.toString()}-label-suffix`"
+          ></slot>
+        </view>
       </view>
 
       <view
