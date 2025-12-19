@@ -47,7 +47,10 @@ export const useFormContainer = <Data extends AnyObject>(
 
       const rules = item.rules ?? []
       if (item.required) {
-        rules.push({ required: true })
+        const hasRequiredRule = rules.some((o) => o.required)
+        if (!hasRequiredRule) {
+          rules.push({ required: true })
+        }
       }
 
       const value = formData[item.field]
