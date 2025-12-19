@@ -18,88 +18,49 @@
         <view v-else class="pointer-events-none flex-1"></view>
       </view>
 
-      <view
-        v-if="showLabel && labelPosition === 'top'"
-        class="pointer-events-none h-12"
-      ></view>
-
-      <view class="flex min-h-12 w-full items-center">
-        <view
-          v-if="showLabel && labelPosition === 'left'"
-          :class="labelClassNames"
-          :style="labelStyle"
-        ></view>
-        <slot
-          v-if="_slots[`${item.field.toString()}-prefix`]"
-          :name="`${item.field.toString()}-prefix`"
-        ></slot>
-        <view :class="contnetClassNames" :style="contentStyles">
-          <view class="flex-1">
-            <slot
-              v-if="_slots[item.field.toString()]"
-              :name="item.field.toString()"
-            ></slot>
-            <field
-              v-else
-              :type="item.type"
-              :field-props="{
-                ...item,
-                readonly: readonly,
-                emptyValue: emptyValue,
-                disabled: disabled,
-              }"
-              v-model="modelValue"
-            ></field>
-          </view>
-        </view>
-        <slot
-          v-if="_slots[`${item.field.toString()}-suffix`]"
-          :name="`${item.field.toString()}-suffix`"
-        ></slot>
-      </view>
-
-      <view :class="errorMessageClassNames" :style="errorMessageStyles">
-        {{ errorMessage?.message }}
+      <view :class="contnetClassNames" :style="contentStyles">
+        <slot></slot>
       </view>
     </view>
   </view>
 </template>
 
 <script lang="ts">
-/**
- * 获取指定类型的字段配置项
- */
-type FieldItemWithType<T extends FieldType> = { type: T } & FieldItem[T]
-
-/**
- * 表单字段
- */
-type FormItemFieldProps = {
-  [T in FieldType]: FieldItemWithType<T>
-}[FieldType]
+type FormItemGropuProps<Data extends AnyObject = any> = {
+  /**
+   * 指定当前字段为一个字段分组
+   */
+  type: 'group'
+  /**
+   * 表单项
+   */
+  children: FormItemField<Data>[]
+  /**
+   * 分组透传给表单项的配置
+   */
+  groupConfig?: FormCommonProps
+}
 
 declare global {
   /**
-   * 表单项配置
+   * 表单项分组
    */
-  type FormItemField<Data extends AnyObject = any> = {
+  type FormItemGroup<Data extends AnyObject = any> = {
     /**
-     * 字段名
+     * 分组字段名
      */
-    field: keyof Data | `_${string}`
-  } & FormItemFieldProps &
+    field: string
+  } & FormItemGropuProps<Data> &
     BaseFormItem
 }
 </script>
 
-<script setup lang="ts" generic="Data extends Record<string, any> = object">
-import field from '@/components/field/field.vue'
-
+<script setup lang="ts" generic="Data extends AnyObject = any">
 interface Props {
   /**
-   * 表单项配置
+   * 表单项
    */
-  item: FormItemField<Data>
+  item: FormItemGroup<Data>
   /**
    * 表单配置
    */
@@ -111,11 +72,8 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  item: () => ({}) as FormItemField<Data>,
-  config: () => ({}) as FormCommonProps,
+  item: () => ({}) as FormItemGroup<Data>,
 })
-
-const modelValue = defineModel<any>()
 
 defineOptions({
   inheritAttrs: false,
@@ -147,25 +105,15 @@ const _slots = computed(() => {
   return slots
 })
 
-const disabled = computed(() => props.item.disabled ?? props.config.disabled)
-
-const readonly = computed(() => props.item.readonly ?? props.config.readonly)
-
-const emptyValue = computed(
-  () => props.item.emptyValue ?? props.config.emptyValue,
-)
+const showLabel = computed(() => {
+  return props.item.label !== false
+})
 
 /**
- * 表单项 class
+ * 表单项分组 class
  */
 const itemClassNames = computed(() => {
-  const classNames: ClassNameValue = ['relative min-h-12 px-4']
-
-  const itemBottomBorder =
-    props.item.itemBottomBorder ?? props.config.itemBottomBorder
-  if (itemBottomBorder) {
-    classNames.push('border-b')
-  }
+  const classNames: ClassNameValue = []
 
   if (props.item.classNames?.item) {
     classNames.push(props.item.classNames.item)
@@ -178,11 +126,10 @@ const itemClassNames = computed(() => {
 })
 
 /**
- * 表单项样式
+ * 表单项分组 style
  */
 const itemStyles = computed(() => {
-  const style: StyleValue = {}
-  const styles: StyleValue = [style]
+  const styles: StyleValue = []
 
   if (props.item.styles?.item) {
     styles.push(props.item.styles.item)
@@ -211,7 +158,7 @@ const requiredClassNames = computed(() => {
 })
 
 /**
- * 必填标签样式
+ * 必填标签 style
  */
 const requiredStyles = computed(() => {
   const style: StyleValue = {
@@ -228,25 +175,11 @@ const requiredStyles = computed(() => {
 })
 
 /**
- * 是否显示标签
- */
-const showLabel = computed(() => {
-  return props.item.label !== false
-})
-
-/**
- * 表单标签位置
- */
-const labelPosition = computed(
-  () => props.item.labelPosition ?? props.config.labelPosition,
-)
-
-/**
- * 表单标题 class
+ * 分组标题 class
  */
 const titleClassNames = computed(() => {
   const classNames: ClassNameValue = [
-    'absolute left-0 flex h-12 w-full items-center',
+    'flex h-12 w-full items-center px-4 border-b',
   ]
   if (props.item.classNames?.title) {
     classNames.push(props.item.classNames.title)
@@ -258,7 +191,7 @@ const titleClassNames = computed(() => {
 })
 
 /**
- * 表单标题 style
+ * 分组标题 style
  */
 const titleStyles = computed(() => {
   const style: StyleValue = {}
@@ -281,7 +214,7 @@ const titleStyles = computed(() => {
  * 表单标签 class
  */
 const labelClassNames = computed(() => {
-  const classNames: ClassNameValue = ['shrink-0']
+  const classNames: ClassNameValue = []
   if (props.item.classNames?.label) {
     classNames.push(props.item.classNames.label)
   }
@@ -292,21 +225,10 @@ const labelClassNames = computed(() => {
 })
 
 /**
- * 表单标签样式，合并了配置属性和自定义属性
+ * 表单标签 style
  */
 const labelStyle = computed(() => {
-  const style: StyleValue = {}
-  const styles: StyleValue = [style]
-
-  const width = props.item.labelWidth ?? props.config.labelWidth
-  if (width) {
-    style.width = width
-  }
-  const textAlign = props.item.labelAlign ?? props.config.labelAlign
-  if (textAlign) {
-    style.textAlign = textAlign
-  }
-  // 添加自定义样式
+  const styles: StyleValue = []
   if (props.item.styles?.label) {
     styles.push(props.item.styles.label)
   }
@@ -316,16 +238,11 @@ const labelStyle = computed(() => {
   return styles
 })
 
-const contentAlign = computed(() => {
-  const defaultAlign = labelPosition.value === 'left' ? 'right' : 'left'
-  return props.item.contentAlign ?? props.config.contentAlign ?? defaultAlign
-})
-
 /**
  * 表单内容 class
  */
 const contnetClassNames = computed(() => {
-  const classNames: ClassNameValue = ['flex-1 flex items-center']
+  const classNames: ClassNameValue = []
 
   if (props.item.classNames?.content) {
     classNames.push(props.item.classNames.content)
@@ -340,51 +257,13 @@ const contnetClassNames = computed(() => {
  * 表单内容样式，合并了配置属性和自定义属性
  */
 const contentStyles = computed(() => {
-  const style: StyleValue = {
-    textAlign: contentAlign.value,
-  }
-  const styles: StyleValue = [style]
+  const styles: StyleValue = []
 
   if (props.item.styles?.content) {
     styles.push(props.item.styles.content)
   }
   if (props.config.styles?.content) {
     styles.push(props.config.styles.content)
-  }
-  return styles
-})
-
-/**
- * 错误提示信息 class
- */
-const errorMessageClassNames = computed(() => {
-  const classNames: ClassNameValue = [
-    'text-red text-xs absolute bottom-0 w-full',
-  ]
-
-  if (props.item.classNames?.errorMessage) {
-    classNames.push(props.item.classNames.errorMessage)
-  }
-  if (props.config.classNames?.errorMessage) {
-    classNames.push(props.config.classNames.errorMessage)
-  }
-  return classNames
-})
-
-/**
- * 错误提示信息 style
- */
-const errorMessageStyles = computed(() => {
-  const style: StyleValue = {
-    textAlign: contentAlign.value,
-  }
-  const styles: StyleValue = [style]
-
-  if (props.item.styles?.errorMessage) {
-    styles.push(props.item.styles.errorMessage)
-  }
-  if (props.config.styles?.errorMessage) {
-    styles.push(props.config.styles.errorMessage)
   }
   return styles
 })

@@ -30,7 +30,7 @@
       <easycom-form-container
         :items="loginItems"
         label-position="top"
-        :border="false"
+        :itemBottomBorder="false"
         :classNames="{
           content: 'border rounded-xl h-12 px-4 bg-gray-100',
         }"
@@ -86,122 +86,125 @@ const baseFormData = ref<BaseFormData>({
 const baseItems = computed(() => {
   const items: FormItem<BaseFormData>[] = [
     {
-      field: '_group_1',
+      field: 'group_1',
       label: '表单设置',
-      type: 'custom',
-      // 通过控制样式
+      type: 'group',
       classNames: {
-        item: 'bg-gray-1',
+        title: 'bg-gray-1',
       },
-    },
-    {
-      field: 'labelPosition',
-      label: '标签位置',
-      type: 'option',
-      placeholder: '请选择标签位置',
-      options: [
+      children: [
         {
-          label: '水平布局',
-          value: 'left',
+          field: 'labelPosition',
+          label: '标签位置',
+          type: 'option',
+          placeholder: '请选择标签位置',
+          options: [
+            {
+              label: '水平布局',
+              value: 'left',
+            },
+            {
+              label: '垂直布局',
+              value: 'top',
+            },
+          ],
         },
         {
-          label: '垂直布局',
-          value: 'top',
+          field: 'labelAlign',
+          label: '标签对齐',
+          type: 'option',
+          placeholder: '请选择标签对齐',
+          options: [
+            {
+              label: '左对齐',
+              value: 'left',
+            },
+            {
+              label: '右对齐',
+              value: 'right',
+            },
+            {
+              label: '居中对齐',
+              value: 'center',
+            },
+          ],
+        },
+        {
+          field: 'readonly',
+          label: '只读',
+          type: 'logic',
+          readonly: false,
         },
       ],
     },
     {
-      field: 'labelAlign',
-      label: '标签对齐',
-      type: 'option',
-      placeholder: '请选择标签对齐',
-      options: [
-        {
-          label: '左对齐',
-          value: 'left',
-        },
-        {
-          label: '右对齐',
-          value: 'right',
-        },
-        {
-          label: '居中对齐',
-          value: 'center',
-        },
-      ],
-    },
-    {
-      field: 'readonly',
-      label: '只读',
-      type: 'logic',
-      readonly: false,
-    },
-    {
-      field: '_group_2',
+      field: 'group_2',
       label: '基础字段',
-      type: 'custom',
+      type: 'group',
       classNames: {
-        item: 'bg-gray-1',
+        title: 'bg-gray-1',
       },
-    },
-    {
-      field: 'text',
-      label: '文本',
-      type: 'text',
-      placeholder: '请输入文本内容',
-      allowClear: true,
-    },
-    {
-      field: 'password',
-      label: '密码',
-      type: 'password',
-      placeholder: '请输入密码',
-      allowClear: true,
-      showVisible: true,
-    },
-    {
-      field: 'bigText',
-      label: '大文本',
-      type: 'textarea',
-      labelPosition: 'top',
-      placeholder: '请输入文本内容',
-    },
-    {
-      field: 'number',
-      label: '整数',
-      type: 'number',
-      placeholder: '部分平台下允许输入小数点',
-    },
-    {
-      field: 'digit',
-      label: '小数',
-      type: 'number',
-      placeholder: '设置 decimal 为 true 表示允许小数',
-      decimal: true,
-    },
-    {
-      field: 'date',
-      label: '日期',
-      type: 'date',
-      placeholder: '请选择日期',
-    },
-    {
-      field: 'options',
-      label: '枚举',
-      type: 'option',
-      placeholder: '请选择',
-      options: [
+      children: [
         {
-          label: '选项1',
-          value: '1',
+          field: 'text',
+          label: '文本',
+          type: 'text',
+          placeholder: '请输入文本内容',
+          allowClear: true,
         },
         {
-          label: '选项2',
-          value: '2',
+          field: 'password',
+          label: '密码',
+          type: 'password',
+          placeholder: '请输入密码',
+          allowClear: true,
+          showVisible: true,
         },
         {
-          label: '选项3',
-          value: '3',
+          field: 'bigText',
+          label: '大文本',
+          type: 'textarea',
+          labelPosition: 'top',
+          placeholder: '请输入文本内容',
+        },
+        {
+          field: 'number',
+          label: '整数',
+          type: 'number',
+          placeholder: '部分平台下允许输入小数点',
+        },
+        {
+          field: 'digit',
+          label: '小数',
+          type: 'number',
+          placeholder: '设置 decimal 为 true 表示允许小数',
+          decimal: true,
+        },
+        {
+          field: 'date',
+          label: '日期',
+          type: 'date',
+          placeholder: '请选择日期',
+        },
+        {
+          field: 'options',
+          label: '枚举',
+          type: 'option',
+          placeholder: '请选择',
+          options: [
+            {
+              label: '选项1',
+              value: '1',
+            },
+            {
+              label: '选项2',
+              value: '2',
+            },
+            {
+              label: '选项3',
+              value: '3',
+            },
+          ],
         },
       ],
     },
