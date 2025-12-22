@@ -28,7 +28,10 @@ export const useFormContainer = <Data extends AnyObject>(
     const formData = toValue(options.data)
     const formItems = toValue(options.items)
 
-    const innerValidate = async (items: FormItem<Data>[]) => {
+    const innerValidate = async (
+      items: FormItem<Data>[],
+      groupRules: FormRuleItem<Data>[],
+    ) => {
       for (const item of items) {
         let itemError = false
         const throwError = (errorOrMessage: Error | string) => {
@@ -47,15 +50,23 @@ export const useFormContainer = <Data extends AnyObject>(
         }
 
         const rules = item.rules ?? []
+        // 添加必填规则
         if (item.required) {
-          const hasRequiredRule = rules.some((o) => o.required)
-          if (!hasRequiredRule) {
-            rules.push({ required: true })
-          }
+          rules.unshift({ required: true })
         }
+        // 合并分组规则
+        rules.unshift(...groupRules)
+        // 合并必填规则
+        const requiredRules = _.remove(rules, (o) =>
+          Object.prototype.hasOwnProperty.call(o, 'required'),
+        )
+        const requiredRule = requiredRules.reduce((acc, cur) => {
+          return Object.assign({}, acc, cur)
+        }, {})
+        rules.unshift(requiredRule)
 
         if (item.type === 'group') {
-          await innerValidate(item.children)
+          await innerValidate(item.children, rules)
           continue
         }
 
@@ -65,6 +76,12 @@ export const useFormContainer = <Data extends AnyObject>(
             continue
           }
 
+          // 必填校验
+          if (rule.required) {
+            if (_.isNil(value) || value === '') {
+              throwError(rule.message || `${item.label}为必填项`)
+            }
+          }
           // 自定义校验
           if (rule.validator) {
             await rule.validator(rule, value).catch(throwError)
@@ -78,12 +95,6 @@ export const useFormContainer = <Data extends AnyObject>(
                 : new RegExp(rule.pattern)
             if (!pattern.test(value)) {
               throwError(rule.message || `${item.label}不符合校验规则`)
-            }
-          }
-          // 必填校验
-          if (rule.required) {
-            if (_.isNil(value) || value === '') {
-              throwError(rule.message || `${item.label}为必填项`)
             }
           }
           // 长度校验
@@ -133,7 +144,7 @@ export const useFormContainer = <Data extends AnyObject>(
       }
     }
 
-    await innerValidate(formItems)
+    await innerValidate(formItems, [])
 
     if (hasError) {
       throw new SilenceError('表单验证失败')

@@ -153,7 +153,7 @@ declare global {
      */
     max?: number
     /**
-     * 是否为必选字段
+     * 是否为必选字段，多次设置以最后一个为准
      */
     required?: boolean
     /**
@@ -196,6 +196,9 @@ declare global {
     rules?: FormRuleItem[]
     /**
      * 是否必填
+     *
+     * 显示必填星号与 rules[index].required: true 的语法糖，
+     * 当设置 rules[index].required 时以后者为准
      */
     required?: boolean
   }
