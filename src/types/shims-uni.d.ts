@@ -74,11 +74,19 @@ declare global {
     uniIdRouter?: UniIdRouter
   }
 
-  interface EventHandle<T extends AnyObject = AnyObject> {
-    type: string
+  type UniDomEventTarget = {
+    dataset: AnyObject
+    offsetLeft: number
+    offsetTop: number
+  }
+
+  type UniEvent<Detail extends AnyObject = AnyObject> = {
+    currentTarget: UniDomEventTarget
+    detail: Detail
+    preventDefault: Event['preventDefault']
+    stopPropagation: Event['stopPropagation']
+    target: UniDomEventTarget
     timeStamp: number
-    detail: T
-    target: AnyObject
-    currentTarget: AnyObject
+    type: string
   }
 }

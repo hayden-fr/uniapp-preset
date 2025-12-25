@@ -119,7 +119,7 @@ interface Props {
   /**
    * 滚动事件
    */
-  onScroll?: (e: EventHandle) => void | Promise<void>
+  onScroll?: (e: UniEvent) => void | Promise<void>
   /**
    * 语义化结构 class
    */

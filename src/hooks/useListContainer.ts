@@ -65,7 +65,7 @@ export const useListContainer = <
   const noMoreTriggered = ref(false)
   const scrollTop = ref(0)
 
-  const refresh = async (e?: EventHandle) => {
+  const refresh = async (e?: UniEvent) => {
     try {
       if (refresherTriggered.value) return
 
@@ -127,7 +127,7 @@ export const useListContainer = <
     }
   }
 
-  const onScroll = _.debounce((e: EventHandle) => {
+  const onScroll = _.debounce((e: UniEvent) => {
     scrollTop.value = e.detail.scrollTop
   }, 200)
 
