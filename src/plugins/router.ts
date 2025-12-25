@@ -392,7 +392,7 @@ export function useRoute() {
       const originalFullPath = route.value.fullPath
       await instance.value.apply('beforeEach', toValue(route), toValue(route))
       if (originalFullPath !== route.value.fullPath) {
-        await uni.navigateTo({ url: route.value.fullPath })
+        await uni.reLaunch({ url: route.value.fullPath })
       }
       await instance.value.apply('afterEach', toValue(route), toValue(route))
     }
