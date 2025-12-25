@@ -1,7 +1,7 @@
 <template>
   <button
-    :class="[buttonStyle.classNames, classNames?.root]"
-    :styles="[buttonStyle.styles, styles?.root]"
+    :class="buttonClassNames"
+    :styles="buttonStyles"
     :size="size"
     :disabled="disabled"
     :hover-class="hoverClass"
@@ -20,10 +20,10 @@
     <view class="flex h-full w-full items-center justify-center gap-2">
       <text
         v-show="icon || loading"
-        :class="[buttonIcon.classNames]"
-        :style="[buttonIcon.styles]"
+        :class="buttonIconClassNames"
+        :style="buttonIconStyles"
       ></text>
-      <text class="group-[.btn-icon-only]/button:hidden">
+      <text v-if="label || $slots.default" class="whitespace-nowrap">
         <slot>{{ label }}</slot>
       </text>
     </view>
@@ -161,8 +161,6 @@ const props = withDefaults(defineProps<Props>(), {
   hoverStayTime: 200,
 })
 
-const slots = useSlots()
-
 type Emit = {
   click: [event: UniEvent]
   getphonenumber: [event: UniEvent]
@@ -176,59 +174,76 @@ type Emit = {
 
 const emit = defineEmits<Emit>()
 
-const buttonIcon = computed(() => {
+/**
+ * 按钮图标 class
+ */
+const buttonIconClassNames = computed(() => {
   const classNames: ClassNameValue = []
-  const styles: StyleValue = [{ fontSize: '1.2em' }]
-
   if (props.loading) {
     classNames.push('animate-spin')
     classNames.push(props.loadingIcon || 'i-tabler-loader-2')
     classNames.push(props.classNames?.loading)
-    styles.push(props.styles?.loading)
   } else if (props.icon) {
     classNames.push(props.icon)
     classNames.push(props.classNames?.icon)
-    styles.push(props.styles?.icon)
   }
-
-  return { classNames, styles }
+  return classNames
 })
 
-const buttonStyle = computed(() => {
+/**
+ * 按钮图标 style
+ */
+const buttonIconStyles = computed(() => {
+  const style: StyleValue = { fontSize: '1.2em' }
+  const styles: StyleValue = [style]
+
+  if (props.loading && props.styles?.loading) {
+    styles.push(props.styles.loading)
+  } else if (props.icon && props.styles?.icon) {
+    styles.push(props.styles.icon)
+  }
+
+  return styles
+})
+
+/**
+ * 按钮 class
+ */
+const buttonClassNames = computed(() => {
   let { color, variant, type, danger, shape, size, disabled } = props
+  const classNames: ClassNameValue = ['m-none']
 
-  const classNames: ClassNameValue = ['m-0', 'group/button']
-  const styles: StyleValue = []
-
+  // 设置按钮大小
   if (size) {
     classNames.push(`btn-${size}`)
   }
 
+  // 禁用按钮
   if (disabled) {
     classNames.push('btn-disabled')
   }
 
+  // 设置按钮载入状态
   if (props.loading) {
     classNames.push('btn-loading')
   }
 
+  // 幽灵属性，使按钮背景透明
   if (props.ghost) {
     classNames.push('btn-ghost')
   }
 
-  if (!(props.label || slots.default) && (props.icon || props.loading)) {
-    classNames.push('btn-icon-only')
-  }
-
   // 设置按钮样式
-  if (shape === 'circle') {
-    classNames.push('rounded-full after:rounded-full')
-  }
-  if (shape === 'round') {
-    classNames.push('rounded-lg after:rounded-lg')
-  }
-  if (shape === 'default') {
-    classNames.push('rounded after:rounded')
+  switch (shape) {
+    case 'circle':
+      classNames.push('rounded-full after:rounded-full')
+      break
+    case 'round':
+      classNames.push('rounded-lg after:rounded-lg')
+      break
+    default:
+      classNames.push('rounded after:rounded')
+      break
   }
 
   // 设置按钮颜色及变体
@@ -255,6 +270,7 @@ const buttonStyle = computed(() => {
   }
 
   variant = variant || (type ? typeLegacyMap[type]?.variant : 'filled')
+  classNames.push(`variant-${variant}`)
 
   if (color) {
     /**
@@ -312,17 +328,28 @@ const buttonStyle = computed(() => {
     }
   }
 
-  classNames.push(`variant-${variant}`)
-
-  return {
-    classNames: loopClassNameValue(classNames, (className) => {
-      // 支持 unocss 动态类名
-      className = className.replace(/:/g, '_')
-      className = className.replace(/\//g, '_')
-      return className
-    }),
-    styles,
+  // 添加自定义样式
+  if (props.classNames?.root) {
+    classNames.push(props.classNames.root)
   }
+
+  return loopClassNameValue(classNames, (className) => {
+    // 支持 unocss 动态类名
+    className = className.replace(/:/g, '_')
+    className = className.replace(/\//g, '_')
+    return className
+  })
+})
+
+/**
+ * 按钮 style
+ */
+const buttonStyles = computed(() => {
+  const styles: StyleValue = []
+  if (props.styles?.root) {
+    styles.push(props.styles.root)
+  }
+  return styles
 })
 
 const bindtap = (type: keyof Emit, event: any) => {
@@ -333,19 +360,19 @@ const bindtap = (type: keyof Emit, event: any) => {
 </script>
 
 <style>
-.group_button {
+button {
   --uni-button-control-height: 3rem;
   height: var(--uni-button-control-height);
   min-width: var(--uni-button-control-height);
 }
 
-.group_button:after {
+button:after {
   width: 100%;
   height: 100%;
   transform: scale(1);
 }
 
-.group_button.btn-mini {
+button.btn-mini {
   --uni-button-control-height: 2rem;
   display: block;
   line-height: 2.1;
@@ -353,39 +380,39 @@ const bindtap = (type: keyof Emit, event: any) => {
   padding: 0 0.44em;
 }
 
-.group_button.btn-small {
+button.btn-small {
   --uni-button-control-height: 2.5rem;
   line-height: 2.4;
   font-size: 15px;
   padding: 0 0.84em;
 }
 
-.group_button.btn-large {
+button.btn-large {
   --uni-button-control-height: 3.5rem;
   line-height: 2.6;
   font-size: 21px;
   padding: 0 1.24em;
 }
 
-.group_button.btn-disabled::after {
+button.btn-disabled::after {
   border-color: rgba(0, 0, 0, 0.3);
 }
 
-.group_button.btn-disabled.variant-link,
-.group_button.btn-disabled.variant-text {
+button.btn-disabled.variant-link,
+button.btn-disabled.variant-text {
   background-color: transparent;
 }
 
-.group_button.btn-ghost {
+button.btn-ghost {
   background-color: transparent !important;
 }
 
-.group_button.btn-icon-only {
+button.btn-icon-only {
   width: var(--uni-button-control-height);
   padding: 0 0.2em;
 }
 
-.group_button.btn-loading::after {
+button.btn-loading::after {
   --un-border-opacity: 0.5 !important;
   background-color: #ffffff;
   opacity: var(--un-border-opacity);
