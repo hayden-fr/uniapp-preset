@@ -5,13 +5,11 @@
     :class="[classNames?.root]"
     :style="[styles?.root]"
   >
-    <view
-      v-if="waiting"
-      class="z-999 absolute h-full w-full"
-      :style="[{ backgroundColor: route.style.navigationBarBackgroundColor }]"
-    >
+    <view v-if="waiting" class="z-999 absolute h-full w-full">
       <slot name="waiting">
-        <custom-waiting></custom-waiting>
+        <view class="h-full w-full" :style="waitingStyles">
+          <custom-waiting></custom-waiting>
+        </view>
       </slot>
     </view>
 
@@ -123,5 +121,12 @@ const isCustomNavigationBar = computed(() => {
 
 const isCustomTabbar = computed(() => {
   return tabBar.value?.custom === true
+})
+
+const waitingStyles = computed(() => {
+  const style: StyleValue = {
+    backgroundColor: route.value.style.navigationBarBackgroundColor,
+  }
+  return style
 })
 </script>
