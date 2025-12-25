@@ -4,6 +4,9 @@
       "path": "pages/demo/index"
     },
     {
+      "path": "pages/demo/home"
+    },
+    {
       "path": "pages/demo/button"
     },
     {
@@ -30,7 +33,7 @@
     "selectedColor": "#1677ff",
     "list": [
       {
-        "pagePath": "pages/demo/index",
+        "pagePath": "pages/demo/home",
         "text": "首页"
       },
       {
