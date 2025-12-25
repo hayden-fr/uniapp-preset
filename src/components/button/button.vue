@@ -8,7 +8,14 @@
     :hover-start-time="hoverStartTime"
     :hover-stay-time="hoverStayTime"
     :open-type="openType"
-    @click="!loading && $emit('click', $event)"
+    @click="bindtap('click', $event)"
+    @getphonenumber="bindtap('getphonenumber', $event)"
+    @getuserinfo="bindtap('getuserinfo', $event)"
+    @error="bindtap('error', $event)"
+    @opensetting="bindtap('opensetting', $event)"
+    @launchapp="bindtap('launchapp', $event)"
+    @contact="bindtap('contact', $event)"
+    @chooseavatar="bindtap('chooseavatar', $event)"
   >
     <view class="flex h-full w-full items-center justify-center gap-2">
       <text
@@ -134,10 +141,6 @@ interface Props {
    */
   openType?: ButtonOpenActionType
   /**
-   * 点击按钮时的回调
-   */
-  onClick?: (event: Event) => void
-  /**
    * 语义化结构 class
    */
   classNames?: Semantic<SemanticDOM, ClassNameValue>
@@ -160,9 +163,18 @@ const props = withDefaults(defineProps<Props>(), {
 
 const slots = useSlots()
 
-defineEmits<{
-  click: [Event]
-}>()
+type Emit = {
+  click: [event: UniEvent]
+  getphonenumber: [event: UniEvent]
+  getuserinfo: [event: UniEvent]
+  error: [event: UniEvent]
+  opensetting: [event: UniEvent]
+  launchapp: [event: UniEvent]
+  contact: [event: UniEvent]
+  chooseavatar: [event: UniEvent]
+}
+
+const emit = defineEmits<Emit>()
 
 const buttonIcon = computed(() => {
   const classNames: ClassNameValue = []
@@ -312,6 +324,12 @@ const buttonStyle = computed(() => {
     styles,
   }
 })
+
+const bindtap = (type: keyof Emit, event: any) => {
+  if (!props.loading) {
+    emit(type as any, event)
+  }
+}
 </script>
 
 <style>
