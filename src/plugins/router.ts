@@ -241,7 +241,7 @@ class UniRouter {
       if (currentPages.length > 1) {
         return uni_navigateBack(options)
       }
-      return uni_reLaunch({ ...options, url: `/${homePageRoute}` })
+      return uni.reLaunch({ ...options, url: `/${homePageRoute}` })
     }
 
     const badge = ref<TabBarBadge>({})
