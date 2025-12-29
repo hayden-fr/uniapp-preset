@@ -1,11 +1,10 @@
 <template>
   <text v-if="readonly" class="">{{ renderedValue }}</text>
-  <switch
-    v-else
-    :checked="checked"
-    :type="mode"
-    @change="handleChange"
-  ></switch>
+  <view v-else class="inline-block" @click="handleChange">
+    <view :class="inputClassNames.wrapper">
+      <view :class="inputClassNames.inner"></view>
+    </view>
+  </view>
 </template>
 
 <script setup lang="ts">
@@ -43,7 +42,7 @@ interface Props {
   /**
    * 渲染模式
    */
-  mode?: 'switch' | 'checkbox'
+  mode?: 'switch' | 'checkbox' | 'radio'
   /**
    * 真值
    */
@@ -90,9 +89,41 @@ const renderedValue = computed(() => {
   return checked.value ? props.trueText : props.falseText
 })
 
-const handleChange = (e: any) => {
-  const checked = e.detail.value
-  modelValue.value = checked ? props.trueValue : props.falseValue
+const inputClassNames = computed(() => {
+  const wrapper: ClassNameValue = [
+    'relative flex items-center transition-all border',
+  ]
+  const inner: ClassNameValue = ['transition-all']
+
+  if (props.mode === 'switch') {
+    wrapper.push('rounded-full h-8 w-13 bg-gray-1/20')
+    inner.push('rounded-full h-8 w-8 border shadow bg-white')
+
+    if (checked.value) {
+      wrapper.push('bg-primary border-primary')
+      inner.push('translate-x-5 border-1 border-primary')
+    } else {
+      inner.push('translate-x-0')
+    }
+  } else if (props.mode === 'checkbox') {
+    wrapper.push('rounded h-6 w-6 justify-center')
+    inner.push('i-tabler-check text-white text-xl')
+    if (checked.value) {
+      wrapper.push('bg-primary border-primary')
+    }
+  } else if (props.mode === 'radio') {
+    wrapper.push('rounded-full h-6 w-6 justify-center')
+    inner.push('i-tabler-check text-white text-xl')
+    if (checked.value) {
+      wrapper.push('bg-primary border-primary')
+    }
+  }
+
+  return { wrapper, inner }
+})
+
+const handleChange = () => {
+  modelValue.value = checked.value ? props.falseValue : props.trueValue
   props.onChange?.(modelValue.value)
 }
 </script>
