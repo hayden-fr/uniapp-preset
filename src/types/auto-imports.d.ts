@@ -108,6 +108,7 @@ declare global {
   const useListContainer: typeof import('../hooks/useListContainer')['useListContainer']
   const useModel: typeof import('vue')['useModel']
   const usePageContainer: typeof import('../hooks/usePageContainer')['usePageContainer']
+  const usePageParameters: typeof import('../hooks/usePageParameters')['usePageParameters']
   const useRoute: typeof import('../utils/plugins')['useRoute']
   const useSelectorQuery: typeof import('../hooks/useSelectorQuery')['useSelectorQuery']
   const useSlots: typeof import('vue')['useSlots']
