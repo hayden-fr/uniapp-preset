@@ -14,18 +14,16 @@
     </view>
 
     <view v-if="isCustomNavigationBar && showNavigationBar">
-      <slot
-        name="navigation-bar"
-        :show-back-btn="showBackBtn"
-        :statusBarHeight="statusBarHeight"
-        :navigationBarHeight="navigationBarHeight"
-        :height="statusBarHeight + navigationBarHeight"
-      >
+      <slot name="navigation-bar">
         <custom-navigation-bar
-          :route="route"
-          :show-back-btn="showBackBtn"
-          :status-bar-height="statusBarHeight"
-          :navigation-bar-height="navigationBarHeight"
+          :show-back-btn="showBackBtn && !(route.isHomePage || route.isTabBar)"
+          :title="route.style.navigationBarTitleText"
+          :styles="{
+            root: {
+              color: route.style.navigationBarTextStyle,
+              backgroundColor: route.style.navigationBarBackgroundColor,
+            },
+          }"
         ></custom-navigation-bar>
       </slot>
     </view>
@@ -110,8 +108,7 @@ onMounted(async () => {
   waiting.value = false
 })
 
-const { statusBarHeight, navigationBarHeight, safeBottomHeight } =
-  usePageContainer()
+const { safeBottomHeight } = usePageContainer()
 
 const { route, tabBar } = useRoute()
 
