@@ -273,7 +273,7 @@ class UniHttpRequest {
     return undefined
   }
 
-  private async httpRequest<T>(options: UniHttpRequestOptions) {
+  async httpRequest<T>(options: UniHttpRequestOptions) {
     const controller = this.requestTaskController.createController(options)
 
     const skipInitialized = options.skipInitialized ?? false
