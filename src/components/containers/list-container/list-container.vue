@@ -95,7 +95,7 @@ interface Props {
   /**
    * 触发下拉刷新
    */
-  refresh?: () => Promise<void>
+  refresh?: (e?: UniEvent) => Promise<void>
   /**
    * 加载更多状态
    */
@@ -115,7 +115,7 @@ interface Props {
   /**
    * 触发加载更多
    */
-  loadMore?: () => Promise<void>
+  loadMore?: (e: UniEvent) => Promise<void>
   /**
    * 滚动事件
    */

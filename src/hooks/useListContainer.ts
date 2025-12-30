@@ -33,6 +33,42 @@ interface ListContainerOptions<
     pagination: Pagination,
     params: Params,
   ) => Promise<ListStructure<Data>>
+  /**
+   * 列表项的 key
+   */
+  rowKey?: MaybeRefOrGetter<string>
+  /**
+   * 列表滚动到底部的时候触发的距离阈值
+   */
+  lowerThreshold?: MaybeRefOrGetter<number | string>
+  /**
+   * 下拉刷新触发的距离阈值
+   */
+  refresherThreshold?: MaybeRefOrGetter<number>
+  /**
+   * 下拉刷新背景颜色
+   */
+  refresherBackground?: MaybeRefOrGetter<string>
+  /**
+   * 自定义没有更多数据时的显示内容
+   */
+  noMoreContent?: MaybeRefOrGetter<string>
+  /**
+   * 自定义加载更多数据时的显示内容
+   */
+  loadMoreContent?: MaybeRefOrGetter<string>
+  /**
+   * 滚动时回调
+   */
+  onScroll?: (e: UniEvent) => void | Promise<void>
+  /**
+   * 下拉刷新后回调
+   */
+  onRefresh?: (e?: UniEvent) => void | Promise<void>
+  /**
+   * 加载更多数据后回调
+   */
+  onLoadMore?: (e: UniEvent) => void | Promise<void>
 }
 
 export const useListContainer = <
@@ -91,6 +127,7 @@ export const useListContainer = <
       pagination.value.total = response.total
       noMoreTriggered.value = items.value.length >= pagination.value.total
 
+      await options.onRefresh?.(e)
       uni.hideLoading()
     } catch (error) {
       items.value = []
@@ -103,7 +140,7 @@ export const useListContainer = <
     }
   }
 
-  const loadMore = async () => {
+  const loadMore = async (e: UniEvent) => {
     try {
       if (loadMoreTriggered.value) return
       if (noMoreTriggered.value) return
@@ -119,6 +156,8 @@ export const useListContainer = <
       items.value = [...items.value, ...response.records] as Data[]
       pagination.value.total = response.total
       noMoreTriggered.value = items.value.length >= pagination.value.total
+
+      await options.onLoadMore?.(e)
     } catch (error) {
       pagination.value.current--
       toastError(error)
@@ -129,6 +168,7 @@ export const useListContainer = <
 
   const onScroll = _.debounce((e: UniEvent) => {
     scrollTop.value = e.detail.scrollTop
+    options.onScroll?.(e)
   }, 200)
 
   watch(
@@ -155,6 +195,12 @@ export const useListContainer = <
       noMoreTriggered: toValue(noMoreTriggered),
       loadMore: loadMore,
       onScroll: onScroll,
+      rowKey: toValue(options.rowKey),
+      lowerThreshold: toValue(options.lowerThreshold),
+      refresherThreshold: toValue(options.refresherThreshold),
+      refresherBackground: toValue(options.refresherBackground),
+      noMoreContent: toValue(options.noMoreContent),
+      loadMoreContent: toValue(options.loadMoreContent),
     }
   })
 
