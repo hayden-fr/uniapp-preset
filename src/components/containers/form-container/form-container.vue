@@ -25,7 +25,6 @@
             ...item.groupConfig,
           }"
           :error-message="itemsValidation[childItem.field]"
-          v-model="formData[childItem.field]"
           :field="childItem.field"
           :slots="$slots"
         >
@@ -39,7 +38,18 @@
             <slot :name="`${childItem.field.toString()}-prefix`"></slot>
           </template>
           <template #[`${childItem.field.toString()}`]>
-            <slot :name="`${childItem.field.toString()}`"></slot>
+            <slot :name="`${childItem.field.toString()}`">
+              <field
+                :type="childItem.type"
+                :field-props="{
+                  ...childItem,
+                  readonly: readonly,
+                  emptyValue: emptyValue,
+                  disabled: disabled,
+                }"
+                v-model="formData[childItem.field]"
+              ></field>
+            </slot>
           </template>
           <template #[`${childItem.field.toString()}-suffix`]>
             <slot :name="`${childItem.field.toString()}-suffix`"></slot>
@@ -51,7 +61,6 @@
         :item="item"
         :config="formConfig"
         :error-message="itemsValidation[item.field]"
-        v-model="formData[item.field]"
         :field="item.field"
         :slots="$slots"
       >
@@ -65,7 +74,18 @@
           <slot :name="`${item.field.toString()}-prefix`"></slot>
         </template>
         <template #[`${item.field.toString()}`]>
-          <slot :name="`${item.field.toString()}`"></slot>
+          <slot :name="`${item.field.toString()}`">
+            <field
+              :type="item.type"
+              :field-props="{
+                ...item,
+                readonly: readonly,
+                emptyValue: emptyValue,
+                disabled: disabled,
+              }"
+              v-model="formData[item.field]"
+            ></field>
+          </slot>
         </template>
         <template #[`${item.field.toString()}-suffix`]>
           <slot :name="`${item.field.toString()}-suffix`"></slot>
@@ -213,6 +233,7 @@ declare global {
 </script>
 
 <script setup lang="ts" generic="Data extends Record<string, any> = object">
+import field from '@/components/field/field.vue'
 import formGroup from './form-group.vue'
 import formItem from './form-item.vue'
 

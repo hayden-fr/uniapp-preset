@@ -36,21 +36,7 @@
         ></slot>
         <view :class="contnetClassNames" :style="contentStyles">
           <view class="flex-1">
-            <slot
-              v-if="_slots[item.field.toString()]"
-              :name="item.field.toString()"
-            ></slot>
-            <field
-              v-else
-              :type="item.type"
-              :field-props="{
-                ...item,
-                readonly: readonly,
-                emptyValue: emptyValue,
-                disabled: disabled,
-              }"
-              v-model="modelValue"
-            ></field>
+            <slot :name="item.field.toString()"></slot>
           </view>
         </view>
         <slot
@@ -94,8 +80,6 @@ declare global {
 </script>
 
 <script setup lang="ts" generic="Data extends Record<string, any> = object">
-import field from '@/components/field/field.vue'
-
 interface Props {
   /**
    * 表单项配置
@@ -115,8 +99,6 @@ const props = withDefaults(defineProps<Props>(), {
   item: () => ({}) as FormItemField<Data>,
   config: () => ({}) as FormCommonProps,
 })
-
-const modelValue = defineModel<any>()
 
 defineOptions({
   inheritAttrs: false,
@@ -147,14 +129,6 @@ const _slots = computed(() => {
   }
   return slots
 })
-
-const disabled = computed(() => props.item.disabled ?? props.config.disabled)
-
-const readonly = computed(() => props.item.readonly ?? props.config.readonly)
-
-const emptyValue = computed(
-  () => props.item.emptyValue ?? props.config.emptyValue,
-)
 
 /**
  * 表单项 class
