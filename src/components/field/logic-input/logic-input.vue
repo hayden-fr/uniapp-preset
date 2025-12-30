@@ -1,8 +1,10 @@
 <template>
   <text v-if="readonly" class="">{{ renderedValue }}</text>
-  <view v-else class="inline-block" @click="handleChange">
-    <view :class="inputClassNames.wrapper">
-      <view :class="inputClassNames.inner"></view>
+  <view v-else class="text-0" @click="handleChange">
+    <view class="inline-block">
+      <view :class="inputClassNames.wrapper">
+        <view :class="inputClassNames.inner"></view>
+      </view>
     </view>
   </view>
 </template>
@@ -91,7 +93,7 @@ const renderedValue = computed(() => {
 
 const inputClassNames = computed(() => {
   const wrapper: ClassNameValue = [
-    'relative flex items-center transition-all border',
+    'relative flex items-center transition-all border mr-px',
   ]
   const inner: ClassNameValue = ['transition-all']
 
