@@ -35,7 +35,7 @@
           :name="`${item.field.toString()}-prefix`"
         ></slot>
         <view :class="contnetClassNames" :style="contentStyles">
-          <view class="flex-1">
+          <view class="flex-1 overflow-hidden">
             <slot :name="item.field.toString()"></slot>
           </view>
         </view>
@@ -318,7 +318,9 @@ const contentAlign = computed(() => {
  * 表单内容 class
  */
 const contnetClassNames = computed(() => {
-  const classNames: ClassNameValue = ['flex-1 flex items-center']
+  const classNames: ClassNameValue = [
+    'flex-1 flex items-center overflow-hidden',
+  ]
 
   if (props.item.classNames?.content) {
     classNames.push(props.item.classNames.content)
