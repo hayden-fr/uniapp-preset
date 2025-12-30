@@ -14,7 +14,7 @@
       @scroll="onScroll"
     >
       <view
-        class="flex h-full flex-col gap-4"
+        class="flex h-full flex-col"
         :class="classNames?.content"
         :style="styles?.content"
       >
@@ -41,7 +41,7 @@
           </view>
         </view>
 
-        <view v-show="items.length > 0" class="flex-1 text-gray-500">
+        <view v-show="items.length > 0" class="flex-1 pt-4 text-gray-500">
           <view v-show="loadMoreTriggered" class="h-full pb-4 text-center">
             <text>加载中...</text>
           </view>

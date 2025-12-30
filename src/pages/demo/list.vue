@@ -13,7 +13,7 @@
         :class-names="{ content: 'px-4' }"
       >
         <template #item="{ item }">
-          <view>{{ item.name }}: {{ item.no }}</view>
+          <view class="py-2">{{ item.name }}: {{ item.no }}</view>
         </template>
       </easycom-list-container>
     </view>
@@ -43,7 +43,7 @@
       <easycom-form-container
         v-model="condition"
         :items="conditionItems"
-        :border="false"
+        :itemBottomBorder="false"
       ></easycom-form-container>
       <view class="mt-4 px-4">
         <easycom-button
@@ -61,7 +61,9 @@
         :class-names="{ content: 'px-4' }"
       >
         <template #item="{ item }">
-          <view>{{ item.name }}[{{ item.content }}]: {{ item.no }}</view>
+          <view class="py-2">
+            {{ item.name }}[{{ item.content }}]: {{ item.no }}
+          </view>
         </template>
       </easycom-list-container>
     </view>
@@ -98,7 +100,7 @@ const conditionItems = computed(() => {
       type: 'text',
       classNames: {
         item: 'border !border-gray rounded-lg mx-4',
-        input: '!text-left',
+        content: '!text-left',
       },
     },
   ]
