@@ -24,7 +24,7 @@
         class="pointer-events-none h-12"
       ></view>
 
-      <view class="flex min-h-12 w-full items-center">
+      <view class="relative flex min-h-12 w-full items-center">
         <view
           v-if="showLabel && labelPosition === 'left'"
           :class="labelClassNames"
