@@ -111,6 +111,7 @@ declare global {
   const usePageParameters: typeof import('../hooks/usePageParameters')['usePageParameters']
   const useRoute: typeof import('../utils/plugins')['useRoute']
   const useSelectorQuery: typeof import('../hooks/useSelectorQuery')['useSelectorQuery']
+  const useSimpleQueryString: typeof import('../hooks/usePageParameters')['useSimpleQueryString']
   const useSlots: typeof import('vue')['useSlots']
   const useStore: typeof import('../utils/plugins')['useStore']
   const useTemplateRef: typeof import('vue')['useTemplateRef']
