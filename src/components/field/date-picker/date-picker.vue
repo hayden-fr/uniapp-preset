@@ -1,26 +1,31 @@
 <template>
-  <text v-if="readonly">{{ modelValue ?? emptyValue }}</text>
-  <picker
-    v-else
-    mode="date"
-    :value="modelValue"
-    @change="handleChange"
-    :disabled="disabled"
-    :start="start"
-    :end="end"
-    :fields="fields"
-  >
-    <view class="relative h-6 leading-normal">
-      <view
-        v-show="!modelValue"
-        class="absolute h-full w-full"
-        style="color: gray"
-      >
-        {{ placeholder }}
-      </view>
-      <view class="uni-input">{{ modelValue }}</view>
+  <view :class="wrapperClassNames">
+    <view v-if="icon" :class="[icon]"></view>
+    <view v-if="readonly" :class="contentClassNames">
+      {{ modelValue ?? emptyValue }}
     </view>
-  </picker>
+    <picker
+      v-else
+      mode="date"
+      class="w-full"
+      :value="modelValue"
+      @change="handleChange"
+      :disabled="disabled"
+      :start="start"
+      :end="end"
+      :fields="fields"
+    >
+      <view :class="contentClassNames">
+        {{ content }}
+      </view>
+    </picker>
+    <view
+      v-if="showClearBtn"
+      v-show="modelValue"
+      :class="allowClearClassNames"
+      @click="handleClear"
+    ></view>
+  </view>
 </template>
 
 <script setup lang="ts">
@@ -42,9 +47,21 @@ interface Props {
    */
   placeholder?: string
   /**
+   * 同一表单或同一行的数据信息
+   */
+  fieldDatas?: AnyObject
+  /**
+   * 图标
+   */
+  icon?: string
+  /**
+   * 是否显示清除按钮
+   */
+  allowClear?: boolean
+  /**
    * 值改变时回调
    */
-  onChange?: (val: string) => void
+  onChange?: (value: any) => void
   /**
    * 开始日期
    */
@@ -73,9 +90,60 @@ defineOptions({
   inheritAttrs: false,
 })
 
+const wrapperClassNames = computed(() => {
+  const classNames: ClassNameValue = ['flex w-full items-center gap-2']
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const contentClassNames = computed(() => {
+  const classNames: ClassNameValue = [
+    'w-full overflow-hidden text-ellipsis whitespace-nowrap',
+  ]
+
+  if (!modelValue.value) {
+    classNames.push('text-black/50')
+  }
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const content = computed(() => {
+  if (modelValue.value) {
+    return modelValue.value
+  }
+  return props.placeholder
+})
+
+const showClearBtn = computed(() => {
+  return !props.readonly && props.allowClear
+})
+
+const allowClearClassNames = computed(() => {
+  const classNames: ClassNameValue = ['text-gray i-tabler-playstation-x']
+  return classNames
+})
+
 const handleChange = (e: any) => {
-  const val = e.detail.value
-  modelValue.value = val
-  props.onChange?.(val)
+  const value = e.detail.value
+  modelValue.value = value
+  props.onChange?.(value)
+}
+
+const handleClear = () => {
+  if (props.disabled) {
+    return
+  }
+
+  modelValue.value = undefined
+  props.onChange?.(undefined)
 }
 </script>

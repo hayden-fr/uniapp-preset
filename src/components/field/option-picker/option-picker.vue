@@ -1,36 +1,37 @@
 <template>
-  <text v-if="readonly">{{ renderedValue ?? emptyValue }}</text>
-  <picker
-    v-else
-    mode="selector"
-    :range="options"
-    range-key="label"
-    :value="selectedIndex"
-    :disabled="disabled"
-    @change="handleChange"
-  >
-    <view class="relative flex h-6 items-center gap-2 leading-normal">
-      <view
-        v-show="!renderedValue"
-        class="absolute h-full w-full"
-        style="color: gray"
-      >
-        {{ placeholder }}
-      </view>
-      <view class="uni-input flex-1">{{ renderedValue }}</view>
-      <view
-        v-if="allowClear"
-        v-show="modelValue"
-        class="i-tabler-playstation-x text-gray"
-        @click.stop="handleClear"
-      ></view>
+  <view :class="wrapperClassNames">
+    <view v-if="icon" :class="[icon]"></view>
+    <view v-if="readonly" :class="contentClassNames">
+      {{ content }}
     </view>
-  </picker>
+    <picker
+      v-else
+      mode="selector"
+      :range="options"
+      range-key="label"
+      class="w-full"
+      :value="selectedIndex"
+      @change="handleChange"
+      :disabled="disabled"
+    >
+      <view :class="contentClassNames">
+        {{ content }}
+      </view>
+    </picker>
+    <view
+      v-if="showClearBtn"
+      v-show="modelValue"
+      :class="allowClearClassNames"
+      @click="handleClear"
+    ></view>
+  </view>
 </template>
 
 <script setup lang="ts">
+type Value = string | number
+
 declare global {
-  type OptionItem<Value = string> = {
+  type OptionItem = {
     label: string
     value: Value
   }
@@ -54,9 +55,9 @@ interface Props {
    */
   placeholder?: string
   /**
-   * 值改变时回调
+   * 同一表单或同一行的数据信息
    */
-  onChange?: (value: string | undefined) => void
+  fieldDatas?: AnyObject
   /**
    * 图标
    */
@@ -65,6 +66,10 @@ interface Props {
    * 是否显示清除按钮
    */
   allowClear?: boolean
+  /**
+   * 值改变时回调
+   */
+  onChange?: (value: Value | undefined) => void
   /**
    * 选项
    */
@@ -81,26 +86,76 @@ const props = withDefaults(defineProps<Props>(), {
   options: () => [],
 })
 
-const modelValue = defineModel<string>()
+const modelValue = defineModel<Value>()
+
+defineOptions({
+  inheritAttrs: false,
+})
 
 const selectedIndex = computed(() => {
   return props.options.findIndex((item) => item.value === modelValue.value)
 })
 
-const renderedValue = computed(() => {
-  const item = props.options[selectedIndex.value]
-  return item ? item.label : ''
+const wrapperClassNames = computed(() => {
+  const classNames: ClassNameValue = ['flex w-full items-center gap-2']
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const content = computed(() => {
+  const index = selectedIndex.value
+  const label = props.options[index]?.label
+
+  if (props.readonly) {
+    return label || props.emptyValue
+  }
+
+  return label || props.placeholder
+})
+
+const showClearBtn = computed(() => {
+  return !props.readonly && props.allowClear
+})
+
+const contentClassNames = computed(() => {
+  const classNames: ClassNameValue = [
+    'w-full overflow-hidden text-ellipsis whitespace-nowrap',
+  ]
+
+  if (!modelValue.value) {
+    classNames.push('text-black/50')
+  }
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const allowClearClassNames = computed(() => {
+  const classNames: ClassNameValue = ['text-gray i-tabler-playstation-x']
+  return classNames
 })
 
 const handleChange = (e: any) => {
   const index = e.detail.value
   const item = props.options[index]
-  modelValue.value = item ? item.value : undefined
-  props.onChange?.(modelValue.value)
+  const value = item?.value
+  modelValue.value = value
+  props.onChange?.(value)
 }
 
 const handleClear = () => {
+  if (props.disabled) {
+    return
+  }
+
   modelValue.value = undefined
-  props.onChange?.(modelValue.value)
+  props.onChange?.(undefined)
 }
 </script>

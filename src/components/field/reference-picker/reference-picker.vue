@@ -1,16 +1,13 @@
 <template>
-  <view class="flex h-8 w-full items-center gap-2">
+  <view :class="wrapperClassNames">
     <view v-if="icon" :class="[icon]"></view>
     <view class="h-full flex-1 overflow-hidden" @click="handleChange">
       <view class="flex h-full items-center">
         <view class="text-0 w-full">
           <view class="text-16px inline-block max-w-full">
             <view class="flex items-center gap-1">
-              <view v-show="selectedItems.length === 0" style="color: gray">
-                {{ placeholder }}
-              </view>
-              <view v-show="renderedLabel" :class="renderedLabelClassNames">
-                {{ renderedLabel }}
+              <view v-show="content" :class="contentClassNames">
+                {{ content }}
               </view>
               <view v-show="multipleCount" :class="multipleCountClassNames">
                 {{ multipleCount }}
@@ -21,9 +18,9 @@
       </view>
     </view>
     <view
-      v-if="!readonly && !disabled && allowClear"
+      v-if="showClearBtn"
       v-show="modelValue"
-      class="text-gray i-tabler-playstation-x"
+      :class="allowClearClassNames"
       @click="handleClear"
     ></view>
   </view>
@@ -31,10 +28,6 @@
 
 <script setup lang="ts">
 interface Props extends ReferenceParameters, ReferenceOptions {
-  /**
-   * 字段名
-   */
-  field: string
   /**
    * 是否禁用
    */
@@ -56,10 +49,6 @@ interface Props extends ReferenceParameters, ReferenceOptions {
    */
   fieldDatas?: AnyObject
   /**
-   * 值改变时回调
-   */
-  onChange?: (value: string | undefined) => void
-  /**
    * 图标
    */
   icon?: string
@@ -68,9 +57,17 @@ interface Props extends ReferenceParameters, ReferenceOptions {
    */
   allowClear?: boolean
   /**
+   * 值改变时回调
+   */
+  onChange?: (value: string | string[] | undefined, items: AnyObject[]) => void
+  /**
    * 参照页面地址
    */
   referencePageUrl?: string
+  /**
+   * 字段名
+   */
+  field: string
   /**
    * 如何从 fieldDatas 中获取参照字段编码，默认为 field + 'Code'
    */
@@ -210,6 +207,10 @@ const props = withDefaults(defineProps<Props>(), {
 
 const modelValue = defineModel<string | string[]>()
 
+defineOptions({
+  inheritAttrs: false,
+})
+
 const fieldCode = computed(() => {
   if (typeof props.fieldCode === 'string') {
     return props.fieldCode
@@ -271,19 +272,36 @@ const selectedItems = computed(() => {
   return props.multiple ? result : result.slice(0, 1)
 })
 
-const renderedLabel = computed(() => {
-  const firstItem = selectedItems.value[0]
-  if (firstItem) {
-    return firstItem[toValue(propsName)]
+const wrapperClassNames = computed(() => {
+  const classNames: ClassNameValue = ['flex w-full items-center gap-2']
+  // flex h-8 w-full items-center gap-2
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
   }
-  return null
+
+  return classNames
 })
 
-const renderedLabelClassNames = computed(() => {
+const content = computed(() => {
+  const firstItem = selectedItems.value[0]
+  const label = firstItem?.[toValue(propsName)]
+
+  if (props.readonly) {
+    return label ?? props.emptyValue
+  }
+
+  return label || props.placeholder
+})
+
+const contentClassNames = computed(() => {
   const classNames: ClassNameValue = [
     'whitespace-nowrap overflow-hidden text-ellipsis',
   ]
-  if (props.multiple) {
+
+  if (selectedItems.value.length === 0) {
+    classNames.push('text-black/50')
+  } else if (props.multiple) {
     classNames.push('rounded px-2 py-px')
     classNames.push('border text-primary border-primary bg-primary-light')
   }
@@ -316,9 +334,6 @@ const multipleCountClassNames = computed(() => {
   return classNames
 })
 
-defineOptions({
-  inheritAttrs: false,
-})
 const { stringifyQueryParams } = useSimpleQueryString()
 
 const handleChange = async () => {
@@ -361,9 +376,10 @@ const handleChange = async () => {
 
         if (!props.multiple) {
           items = data.slice(0, 1)
+          join = (items: string[]) => items[0]
         }
 
-        if (props.multipleMode === 'comma') {
+        if (props.multiple && props.multipleMode === 'comma') {
           join = (items: string[]) => items.join(',')
         }
 
@@ -371,17 +387,32 @@ const handleChange = async () => {
         const code = (item: AnyObject) => item[toValue(propsCode)]
         const name = (item: AnyObject) => item[toValue(propsName)]
 
-        modelValue.value = join(items.map((item) => id(item)))
+        const value = join(items.map((item) => id(item)))
+        modelValue.value = value
         fieldDatas[toValue(fieldCode)] = join(items.map((item) => code(item)))
         fieldDatas[toValue(fieldName)] = join(items.map((item) => name(item)))
+        props.onChange?.(value, items)
       },
     },
   })
   res.eventChannel.emit(`${field}-reference-options`, options)
 }
 
+const showClearBtn = computed(() => {
+  return !props.readonly && props.allowClear
+})
+
+const allowClearClassNames = computed(() => {
+  const classNames: ClassNameValue = ['text-gray i-tabler-playstation-x']
+  return classNames
+})
+
 const handleClear = () => {
+  if (props.disabled) {
+    return
+  }
+
   modelValue.value = undefined
-  props.onChange?.(modelValue.value)
+  props.onChange?.(undefined, [])
 }
 </script>

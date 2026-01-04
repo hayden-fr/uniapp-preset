@@ -1,27 +1,30 @@
 <template>
-  <view v-if="readonly" class="py-3">
-    <text>{{ modelValue ?? emptyValue }}</text>
-  </view>
-  <view v-else class="relative w-full py-3">
-    <textarea
-      :value="modelValue"
-      @input="handleChange"
-      class="w-full"
-      :placeholder="placeholder"
-      :disabled="disabled"
-      :maxlength="maxlength"
-      :auto-height="autoHeight"
-      :cursor-spacing="cursorSpacing"
-    ></textarea>
-    <view class="text-gray absolute bottom-3 right-0 flex items-center gap-2">
-      <view v-if="showCount" class="pointer-events-none">
-        {{ modelValue?.length ?? 0 }} / {{ maxlength }}
+  <view :class="wrapperClassNames">
+    <view v-if="readonly" class="break-all py-3">
+      {{ modelValue ?? emptyValue }}
+    </view>
+    <view v-else class="relative w-full py-3">
+      <textarea
+        :value="modelValue"
+        @input="handleChange"
+        :class="contentClassNames"
+        :placeholder="placeholder"
+        :disabled="disabled"
+        :maxlength="maxlength"
+        :auto-height="autoHeight"
+        :cursor-spacing="cursorSpacing"
+      ></textarea>
+      <view class="text-gray absolute bottom-3 right-0 flex items-center gap-2">
+        <view v-if="showCount" class="pointer-events-none">
+          {{ modelValue?.length ?? 0 }} / {{ maxlength }}
+        </view>
+        <view
+          v-if="showClearBtn"
+          v-show="modelValue"
+          :class="allowClearClassNames"
+          @click="handleClear"
+        ></view>
       </view>
-      <view
-        v-if="allowClear"
-        class="i-tabler-playstation-x"
-        @click="handleClear"
-      ></view>
     </view>
   </view>
 </template>
@@ -45,13 +48,21 @@ interface Props {
    */
   placeholder?: string
   /**
-   * 值改变时回调
+   * 同一表单或同一行的数据信息
    */
-  onChange?: (value: string | undefined) => void
+  fieldDatas?: AnyObject
+  /**
+   * 图标
+   */
+  icon?: string
   /**
    * 是否显示清除按钮
    */
   allowClear?: boolean
+  /**
+   * 值改变时回调
+   */
+  onChange?: (value: string | undefined) => void
   /**
    * 最大长度
    */
@@ -86,14 +97,47 @@ defineOptions({
   inheritAttrs: false,
 })
 
+const wrapperClassNames = computed(() => {
+  const classNames: ClassNameValue = ['flex w-full items-center gap-2']
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const contentClassNames = computed(() => {
+  const classNames: ClassNameValue = ['w-full']
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const showClearBtn = computed(() => {
+  return !props.readonly && props.allowClear
+})
+
+const allowClearClassNames = computed(() => {
+  const classNames: ClassNameValue = ['text-gray i-tabler-playstation-x']
+  return classNames
+})
+
 const handleChange = (e: any) => {
-  const val = e.detail.value
-  modelValue.value = val
-  props.onChange?.(val)
+  const value = e.detail.value
+  modelValue.value = value
+  props.onChange?.(value)
 }
 
 const handleClear = () => {
+  if (props.disabled) {
+    return
+  }
+
   modelValue.value = undefined
-  props.onChange?.(modelValue.value)
+  props.onChange?.(undefined)
 }
 </script>

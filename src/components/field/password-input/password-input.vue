@@ -1,27 +1,28 @@
 <template>
-  <view class="flex w-full items-center gap-2">
+  <view :class="wrapperClassNames">
     <view v-if="icon" :class="[icon]"></view>
-    <text v-if="readonly">{{ modelValue ?? emptyValue }}</text>
+    <view v-if="readonly" :class="contentClassNames">
+      {{ readonlyContent }}
+    </view>
     <input
       v-else
       :type="checkPassword ? 'text' : 'password'"
       :value="modelValue"
       :password="!checkPassword"
       @input="handleChange"
-      class="flex-1"
+      :class="contentClassNames"
       :placeholder="placeholder"
       :disabled="disabled"
     />
     <view
-      v-if="allowClear"
+      v-if="showClearBtn"
       v-show="modelValue"
-      class="text-gray i-tabler-playstation-x"
+      :class="allowClearClassNames"
       @click="handleClear"
     ></view>
     <view
-      v-if="showVisible"
-      class="text-gray"
-      :class="[checkPassword ? 'i-tabler-eye' : 'i-tabler-eye-closed']"
+      v-if="showVisibleBtn"
+      :class="showVisibleClassNames"
       @click="handleToggle"
     ></view>
   </view>
@@ -46,9 +47,9 @@ interface Props {
    */
   placeholder?: string
   /**
-   * 值改变时回调
+   * 同一表单或同一行的数据信息
    */
-  onChange?: (value: string | undefined) => void
+  fieldDatas?: AnyObject
   /**
    * 图标
    */
@@ -57,6 +58,10 @@ interface Props {
    * 是否显示清除按钮
    */
   allowClear?: boolean
+  /**
+   * 值改变时回调
+   */
+  onChange?: (value: string | undefined) => void
   /**
    * 是否显示密码可见
    */
@@ -77,6 +82,59 @@ defineOptions({
   inheritAttrs: false,
 })
 
+const wrapperClassNames = computed(() => {
+  const classNames: ClassNameValue = ['flex w-full items-center gap-2']
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const contentClassNames = computed(() => {
+  const classNames: ClassNameValue = [
+    'flex-1 overflow-hidden whitespace-nowrap',
+  ]
+
+  if (props.readonly) {
+    classNames.push('overflow-y-hidden')
+  }
+
+  if (props.readonly && !checkPassword.value) {
+    classNames.push('translate-y-1')
+  }
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const showClearBtn = computed(() => {
+  return !props.readonly && props.allowClear
+})
+
+const allowClearClassNames = computed(() => {
+  const classNames: ClassNameValue = ['text-gray i-tabler-playstation-x']
+  return classNames
+})
+
+const showVisibleBtn = computed(() => {
+  return modelValue.value && props.showVisible
+})
+
+const showVisibleClassNames = computed(() => {
+  const classNames: ClassNameValue = ['text-gray']
+  if (checkPassword.value) {
+    classNames.push('i-tabler-eye')
+  } else {
+    classNames.push('i-tabler-eye-closed')
+  }
+  return classNames
+})
+
 const handleChange = (e: any) => {
   const val = e.detail.value
   modelValue.value = val
@@ -84,11 +142,29 @@ const handleChange = (e: any) => {
 }
 
 const handleClear = () => {
+  if (props.disabled) {
+    return
+  }
+
   modelValue.value = undefined
-  props.onChange?.(modelValue.value)
+  props.onChange?.(undefined)
 }
 
 const checkPassword = ref(false)
+
+const readonlyContent = computed(() => {
+  const value = modelValue.value
+
+  if (!value || value.length === 0) {
+    return props.emptyValue
+  }
+
+  if (checkPassword.value) {
+    return value
+  }
+
+  return '*'.repeat(value.length)
+})
 
 const handleToggle = () => {
   checkPassword.value = !checkPassword.value

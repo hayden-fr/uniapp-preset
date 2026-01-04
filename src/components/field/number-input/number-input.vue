@@ -1,23 +1,24 @@
 <template>
-  <view class="flex w-full items-center gap-2">
+  <view :class="wrapperClassNames">
     <view v-if="icon" :class="[icon]"></view>
-    <view v-if="readonly" class="flex-1">{{ modelValue ?? emptyValue }}</view>
-    <template v-else>
-      <input
-        class="flex-1"
-        :type="decimal ? 'digit' : 'number'"
-        :value="modelValue"
-        @input="handleChange"
-        :placeholder="placeholder"
-        :disabled="disabled"
-      />
-      <view
-        v-if="allowClear"
-        v-show="modelValue"
-        class="text-gray i-tabler-playstation-x"
-        @click="handleClear"
-      ></view>
-    </template>
+    <view v-if="readonly" :class="contentClassNames">
+      {{ modelValue ?? emptyValue }}
+    </view>
+    <input
+      v-else
+      :type="decimal ? 'digit' : 'number'"
+      :class="contentClassNames"
+      :value="modelValue"
+      @input="handleChange"
+      :placeholder="placeholder"
+      :disabled="disabled"
+    />
+    <view
+      v-if="showClearBtn"
+      v-show="modelValue"
+      :class="allowClearClassNames"
+      @click="handleClear"
+    ></view>
   </view>
 </template>
 
@@ -40,9 +41,9 @@ interface Props {
    */
   placeholder?: string
   /**
-   * 值改变时回调
+   * 同一表单或同一行的数据信息
    */
-  onChange?: (value: number | undefined) => void
+  fieldDatas?: AnyObject
   /**
    * 图标
    */
@@ -51,6 +52,10 @@ interface Props {
    * 是否显示清除按钮
    */
   allowClear?: boolean
+  /**
+   * 值改变时回调
+   */
+  onChange?: (value: number | undefined) => void
   /**
    * 是否允许输入小数
    */
@@ -71,6 +76,37 @@ defineOptions({
   inheritAttrs: false,
 })
 
+const wrapperClassNames = computed(() => {
+  const classNames: ClassNameValue = ['flex w-full items-center gap-2']
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const contentClassNames = computed(() => {
+  const classNames: ClassNameValue = [
+    'flex-1 overflow-hidden text-ellipsis whitespace-nowrap',
+  ]
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const showClearBtn = computed(() => {
+  return !props.readonly && props.allowClear
+})
+
+const allowClearClassNames = computed(() => {
+  const classNames: ClassNameValue = ['text-gray i-tabler-playstation-x']
+  return classNames
+})
+
 const handleChange = (e: any) => {
   const value = e.detail.value
   modelValue.value = value
@@ -78,7 +114,11 @@ const handleChange = (e: any) => {
 }
 
 const handleClear = () => {
+  if (props.disabled) {
+    return
+  }
+
   modelValue.value = undefined
-  props.onChange?.(modelValue.value)
+  props.onChange?.(undefined)
 }
 </script>

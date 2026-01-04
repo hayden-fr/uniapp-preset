@@ -101,6 +101,14 @@ interface FieldCommonProps {
    */
   fieldDatas?: AnyObject
   /**
+   * 图标
+   */
+  icon?: string
+  /**
+   * 是否显示清除按钮
+   */
+  allowClear?: boolean
+  /**
    * 值改变时回调
    */
   onChange?: (value: any) => void

@@ -1,7 +1,7 @@
 <template>
-  <text v-if="readonly" class="">{{ renderedValue }}</text>
-  <view v-else class="text-0" @click="handleChange">
-    <view class="inline-block">
+  <view :class="wrapperClassNames">
+    <text v-if="readonly" :class="contentClassNames">{{ renderedValue }}</text>
+    <view v-else :class="contentClassNames" @click="handleChange">
       <view :class="inputClassNames.wrapper">
         <view :class="inputClassNames.inner"></view>
       </view>
@@ -30,9 +30,9 @@ interface Props {
    */
   placeholder?: string
   /**
-   * 值改变时回调
+   * 同一表单或同一行的数据信息
    */
-  onChange?: (value: LogicValue | undefined) => void
+  fieldDatas?: AnyObject
   /**
    * 图标
    */
@@ -41,6 +41,10 @@ interface Props {
    * 是否显示清除按钮
    */
   allowClear?: boolean
+  /**
+   * 值改变时回调
+   */
+  onChange?: (value: LogicValue | undefined) => void
   /**
    * 渲染模式
    */
@@ -91,6 +95,26 @@ const renderedValue = computed(() => {
   return checked.value ? props.trueText : props.falseText
 })
 
+const wrapperClassNames = computed(() => {
+  const classNames: ClassNameValue = ['inline-block']
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
+const contentClassNames = computed(() => {
+  const classNames: ClassNameValue = ['text-16px']
+
+  if (props.disabled) {
+    classNames.push('opacity-70')
+  }
+
+  return classNames
+})
+
 const inputClassNames = computed(() => {
   const wrapper: ClassNameValue = [
     'relative flex items-center transition-all border mr-px',
@@ -125,7 +149,16 @@ const inputClassNames = computed(() => {
 })
 
 const handleChange = () => {
-  modelValue.value = checked.value ? props.falseValue : props.trueValue
-  props.onChange?.(modelValue.value)
+  if (props.readonly) {
+    return
+  }
+
+  if (props.disabled) {
+    return
+  }
+
+  const value = checked.value ? props.falseValue : props.trueValue
+  modelValue.value = value
+  props.onChange?.(value)
 }
 </script>
