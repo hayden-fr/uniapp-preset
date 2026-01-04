@@ -42,10 +42,9 @@
               <field
                 :type="childItem.type"
                 :field-props="{
+                  ...pickFieldConfig(formConfig),
+                  ...pickFieldConfig(item.groupConfig),
                   ...childItem,
-                  readonly: readonly,
-                  emptyValue: emptyValue,
-                  disabled: disabled,
                 }"
                 v-model="formData[childItem.field]"
               ></field>
@@ -78,10 +77,8 @@
             <field
               :type="item.type"
               :field-props="{
+                ...pickFieldConfig(formConfig),
                 ...item,
-                readonly: readonly,
-                emptyValue: emptyValue,
-                disabled: disabled,
               }"
               v-model="formData[item.field]"
             ></field>
@@ -268,4 +265,8 @@ const props = withDefaults(defineProps<Props>(), {
 const formConfig = computed(() => {
   return _.omit(props, 'items', 'itemsValidation')
 })
+
+const pickFieldConfig = (config: BaseFormItemProps = {}) => {
+  return _.pick(config, ['disabled', 'readonly', 'emptyValue'])
+}
 </script>
