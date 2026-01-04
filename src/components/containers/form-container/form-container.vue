@@ -109,6 +109,10 @@ interface BaseFormItemProps {
    */
   emptyValue?: string
   /**
+   * 是否显示清除按钮
+   */
+  allowClear?: boolean
+  /**
    * 表单项标签位置
    */
   labelPosition?: FormItemLabelPositionType
@@ -269,6 +273,6 @@ const formConfig = computed(() => {
 })
 
 const pickFieldConfig = (config: BaseFormItemProps = {}) => {
-  return _.pick(config, ['disabled', 'readonly', 'emptyValue'])
+  return _.pick(config, ['disabled', 'readonly', 'emptyValue', 'allowClear'])
 }
 </script>
