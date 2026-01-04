@@ -46,6 +46,7 @@
                   ...pickFieldConfig(item.groupConfig),
                   ...childItem,
                 }"
+                :field-datas="formData"
                 v-model="formData[childItem.field]"
               ></field>
             </slot>
@@ -80,6 +81,7 @@
                 ...pickFieldConfig(formConfig),
                 ...item,
               }"
+              :field-datas="formData"
               v-model="formData[item.field]"
             ></field>
           </slot>

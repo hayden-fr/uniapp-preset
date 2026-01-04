@@ -41,6 +41,12 @@
     v-bind="mergedProps"
   ></logic-input>
 
+  <reference-picker
+    v-else-if="type === 'reference'"
+    v-model="modelValue"
+    v-bind="mergedProps"
+  ></reference-picker>
+
   <empty-content
     v-else
     v-model="modelValue"
@@ -69,6 +75,7 @@ import logicInput from './logic-input/logic-input.vue'
 import numberInput from './number-input/number-input.vue'
 import optionPicker from './option-picker/option-picker.vue'
 import passwordInput from './password-input/password-input.vue'
+import referencePicker from './reference-picker/reference-picker.vue'
 import textInput from './text-input/text-input.vue'
 import textareaInput from './textarea-input/textarea-input.vue'
 
@@ -90,6 +97,10 @@ interface FieldCommonProps {
    */
   placeholder?: string
   /**
+   * 同一表单或同一行的数据信息
+   */
+  fieldDatas?: AnyObject
+  /**
    * 值改变时回调
    */
   onChange?: (value: any) => void
@@ -100,7 +111,6 @@ interface Props extends FieldCommonProps {
    * 字段类型
    */
   type?: Type
-
   /**
    * 字段透传属性，会覆盖 FieldCommonProps 中的字段值
    */
@@ -108,7 +118,7 @@ interface Props extends FieldCommonProps {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  fieldProps: () => ({}),
+  fieldProps: () => ({}) as FieldItem[Type],
 })
 
 const modelValue = defineModel<any>()
@@ -126,6 +136,7 @@ const mergedProps = computed<any>(() => {
       emptyValue: props.emptyValue,
       placeholder: props.placeholder,
       onChange: props.onChange,
+      fieldDatas: props.fieldDatas,
     },
     props.fieldProps,
   )

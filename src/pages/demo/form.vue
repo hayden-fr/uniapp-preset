@@ -206,6 +206,13 @@ const baseItems = computed(() => {
             },
           ],
         },
+        {
+          field: 'reference',
+          type: 'reference',
+          label: '参照',
+          placeholder: '请选择',
+          dataSource: '/reference/common/page',
+        },
       ],
     },
   ]
