@@ -38,18 +38,21 @@
             <slot :name="`${childItem.field.toString()}-prefix`"></slot>
           </template>
           <template #[`${childItem.field.toString()}`]>
-            <slot :name="`${childItem.field.toString()}`">
-              <field
-                :type="childItem.type"
-                :field-props="{
-                  ...pickFieldConfig(formConfig),
-                  ...pickFieldConfig(item.groupConfig),
-                  ...childItem,
-                }"
-                :field-datas="formData"
-                v-model="formData[childItem.field]"
-              ></field>
-            </slot>
+            <slot
+              v-if="$slots[childItem.field.toString()]"
+              :name="`${childItem.field.toString()}`"
+            ></slot>
+            <field
+              v-else
+              :type="childItem.type"
+              :field-props="{
+                ...pickFieldConfig(formConfig),
+                ...pickFieldConfig(item.groupConfig),
+                ...childItem,
+              }"
+              :field-datas="formData"
+              v-model="formData[childItem.field]"
+            ></field>
           </template>
           <template #[`${childItem.field.toString()}-suffix`]>
             <slot :name="`${childItem.field.toString()}-suffix`"></slot>
@@ -74,17 +77,20 @@
           <slot :name="`${item.field.toString()}-prefix`"></slot>
         </template>
         <template #[`${item.field.toString()}`]>
-          <slot :name="`${item.field.toString()}`">
-            <field
-              :type="item.type"
-              :field-props="{
-                ...pickFieldConfig(formConfig),
-                ...item,
-              }"
-              :field-datas="formData"
-              v-model="formData[item.field]"
-            ></field>
-          </slot>
+          <slot
+            v-if="$slots[item.field.toString()]"
+            :name="`${item.field.toString()}`"
+          ></slot>
+          <field
+            v-else
+            :type="item.type"
+            :field-props="{
+              ...pickFieldConfig(formConfig),
+              ...item,
+            }"
+            :field-datas="formData"
+            v-model="formData[item.field]"
+          ></field>
         </template>
         <template #[`${item.field.toString()}-suffix`]>
           <slot :name="`${item.field.toString()}-suffix`"></slot>
