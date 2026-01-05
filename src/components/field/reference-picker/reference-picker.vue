@@ -157,6 +157,10 @@ interface ReferenceOptions {
    * 请求方式
    */
   requestMethod?: 'get' | 'post'
+  /**
+   * 请求透传参数
+   */
+  requestOptions?: Partial<UniHttpRequestOptions>
 }
 
 declare global {
@@ -364,6 +368,7 @@ const handleChange = async () => {
     requestMethod: props.requestMethod,
     queryParams: props.queryParams,
     value: selectedItems.value,
+    requestOptions: props.requestOptions ?? {},
   }
 
   const res = await uni.navigateTo({

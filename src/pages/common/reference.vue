@@ -90,10 +90,6 @@ const { listProps, refresh } = useListContainer({
   refresherEnabled: refresherEnabled,
   getListData: async (pagination, params) => {
     const dataSource = options.value.dataSource || ''
-    if (!dataSource) {
-      throw new Error(`[参照${toValue(field)}参数] dataSource is required`)
-    }
-
     const reuqestMethod = options.value.requestMethod || 'get'
     type RequestMethod = Uppercase<typeof reuqestMethod>
     const method = reuqestMethod.toLowerCase() as RequestMethod
@@ -109,6 +105,9 @@ const { listProps, refresh } = useListContainer({
     } else {
       requestOptions.data = queryParams
     }
+
+    // 合并透传请求参数
+    Object.assign(requestOptions, options.value.requestOptions)
 
     return request.httpRequest<ListStructure<any>>(requestOptions)
   },
