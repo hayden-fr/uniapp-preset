@@ -13,6 +13,8 @@
       :class="contentClassNames"
       :placeholder="placeholder"
       :disabled="disabled"
+      @focus="bindEvent('onFocus', $event)"
+      @blur="bindEvent('onBlur', $event)"
     />
     <view
       v-if="showClearBtn"
@@ -62,6 +64,18 @@ interface Props {
    * 值改变时回调
    */
   onChange?: (value: string | undefined) => void
+  /**
+   * 输入时回调
+   */
+  onInput?: (event: UniEvent) => void
+  /**
+   * 获取焦点时回调
+   */
+  onFocus?: (event: UniEvent) => void
+  /**
+   * 失去焦点时回调
+   */
+  onBlur?: (event: UniEvent) => void
   /**
    * 是否显示密码可见
    */
@@ -136,6 +150,7 @@ const showVisibleClassNames = computed(() => {
 })
 
 const handleChange = (e: any) => {
+  props.onInput?.(e)
   const val = e.detail.value
   modelValue.value = val
   props.onChange?.(val)
@@ -148,6 +163,12 @@ const handleClear = () => {
 
   modelValue.value = undefined
   props.onChange?.(undefined)
+}
+
+type EventTarget = 'onFocus' | 'onBlur'
+
+const bindEvent = (target: EventTarget, e: any) => {
+  props[target]?.(e)
 }
 
 const checkPassword = ref(false)

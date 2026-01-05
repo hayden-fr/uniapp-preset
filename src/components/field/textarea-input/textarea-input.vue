@@ -13,6 +13,8 @@
         :maxlength="maxlength"
         :auto-height="autoHeight"
         :cursor-spacing="cursorSpacing"
+        @focus="bindEvent('onFocus', $event)"
+        @blur="bindEvent('onBlur', $event)"
       ></textarea>
       <view class="text-gray absolute bottom-3 right-0 flex items-center gap-2">
         <view v-if="showCount" class="pointer-events-none">
@@ -63,6 +65,18 @@ interface Props {
    * 值改变时回调
    */
   onChange?: (value: string | undefined) => void
+  /**
+   * 输入时回调
+   */
+  onInput?: (event: UniEvent) => void
+  /**
+   * 获取焦点时回调
+   */
+  onFocus?: (event: UniEvent) => void
+  /**
+   * 失去焦点时回调
+   */
+  onBlur?: (event: UniEvent) => void
   /**
    * 最大长度
    */
@@ -127,6 +141,7 @@ const allowClearClassNames = computed(() => {
 })
 
 const handleChange = (e: any) => {
+  props.onInput?.(e)
   const value = e.detail.value
   modelValue.value = value
   props.onChange?.(value)
@@ -139,5 +154,11 @@ const handleClear = () => {
 
   modelValue.value = undefined
   props.onChange?.(undefined)
+}
+
+type EventTarget = 'onFocus' | 'onBlur'
+
+const bindEvent = (target: EventTarget, e: any) => {
+  props[target]?.(e)
 }
 </script>
