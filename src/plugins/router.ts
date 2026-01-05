@@ -297,7 +297,7 @@ class UniRouter {
   }
 }
 
-const instance = shallowRef({} as UniRouter)
+const instance = ref({} as UniRouter)
 
 declare module 'vue' {
   interface ComponentCustomProperties {
@@ -327,8 +327,14 @@ class Router {
     if (afterEach) {
       instance.value.register('afterEach', afterEach)
     }
-    app.config.globalProperties.$$router = instance.value
-    app.provide(tabBarBadgeKey, instance.value.badge)
+    Object.defineProperty(app.config.globalProperties, '$$router', {
+      get() {
+        return instance.value
+      },
+      enumerable: true,
+      configurable: false,
+    })
+    app.provide(tabBarBadgeKey, toRef(instance.value.badge))
 
     // 等待页面初始化完成
     app.config.globalProperties.$init.register({
