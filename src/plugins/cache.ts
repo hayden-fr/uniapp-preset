@@ -1,8 +1,10 @@
 class UniCache {
-  constructor(private prefix?: string) {}
+  constructor(private options?: CacheOptions) {}
 
   getStorageKey(key: string) {
-    return this.prefix ? `${this.prefix}-${key}` : key
+    const delimiter = this.options?.delimiter ?? '-'
+    const prefix = this.options?.prefix
+    return prefix ? `${prefix}${delimiter}${key}` : key
   }
 
   set(key: string, value: any, expire?: number) {
@@ -18,13 +20,18 @@ class UniCache {
   get<T = any>(key: string): T | undefined {
     const storageKey = this.getStorageKey(key)
     if (this.has(key)) {
-      const data = uni.getStorageSync(storageKey)
-      const { value, expire } = data
-      if (expire && expire < Date.now()) {
-        this.remove(key)
-        return undefined
+      const content = uni.getStorageSync(storageKey)
+      try {
+        const data = typeof content === 'string' ? JSON.parse(content) : content
+        const { value, expire } = data
+        if (expire && expire < Date.now()) {
+          this.remove(key)
+          return undefined
+        }
+        return value
+      } catch {
+        return content
       }
-      return value
     }
     return undefined
   }
@@ -62,11 +69,12 @@ declare module 'vue' {
 
 export interface CacheOptions {
   prefix?: string
+  delimiter?: string
 }
 
 class Cache {
   install(app: VueApp, options: CacheOptions = {}) {
-    instance.value = new UniCache(options.prefix)
+    instance.value = new UniCache(options)
     app.config.globalProperties.$cache = instance.value
   }
 }
