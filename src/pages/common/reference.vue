@@ -92,7 +92,7 @@ const { listProps, refresh } = useListContainer({
     const dataSource = options.value.dataSource || ''
     const reuqestMethod = options.value.requestMethod || 'get'
     type RequestMethod = Uppercase<typeof reuqestMethod>
-    const method = reuqestMethod.toLowerCase() as RequestMethod
+    const method = reuqestMethod.toUpperCase() as RequestMethod
     const requestOptions: UniHttpRequestOptions = {
       url: dataSource,
       method: method,
