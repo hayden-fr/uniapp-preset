@@ -9,7 +9,12 @@
         <view class="rounded border px-4 py-2">
           <easycom-field
             type="text"
-            :field-props="{ placeholder: '请搜索' }"
+            v-model="searchContent"
+            :field-props="{
+              placeholder: '搜索输入关键字',
+              ...options.searchOptions,
+              onBlur: handleSearch,
+            }"
           ></easycom-field>
         </view>
       </view>
@@ -83,7 +88,7 @@ const eventChannel = useEventChannel((e) => {
   }
 })
 
-const { listProps, refresh } = useListContainer({
+const { queryParams, listProps, refresh } = useListContainer({
   rowKey: propsId,
   manual: manual,
   defaultPageSize: 20,
@@ -112,6 +117,14 @@ const { listProps, refresh } = useListContainer({
     return request.httpRequest<ListStructure<any>>(requestOptions)
   },
 })
+
+const searchContent = ref<string>()
+
+const handleSearch = (e: any) => {
+  const field = options.value.searchOptions?.field ?? 'content'
+  queryParams.value[field] = searchContent.value
+  options.value.searchOptions?.onBlur?.(e)
+}
 
 const showSelected = () => {}
 

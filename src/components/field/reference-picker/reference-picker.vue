@@ -131,14 +131,6 @@ interface ReferenceParameters {
    * 是否显示搜索框
    */
   showSearch?: boolean
-  /**
-   * 搜索字段
-   */
-  searchField?: string
-  /**
-   * 搜索提示文字
-   */
-  searchPlaceholder?: string
 }
 
 /**
@@ -161,6 +153,12 @@ interface ReferenceOptions {
    * 请求透传参数
    */
   requestOptions?: Partial<UniHttpRequestOptions>
+  /**
+   * 查询组件参数透传
+   */
+  searchOptions?: FieldItem['text'] & {
+    field?: string
+  }
 }
 
 declare global {
@@ -205,8 +203,6 @@ const props = withDefaults(defineProps<Props>(), {
     return Object.assign(defaultProps, p.defaultProps)
   },
   showSearch: false,
-  searchField: 'content',
-  searchPlaceholder: '搜索关键字',
 })
 
 const modelValue = defineModel<string | string[]>()
@@ -359,9 +355,7 @@ const handleChange = async () => {
     multipleMode: props.multipleMode,
     multipleMax: props.multipleMax,
     defaultProps: props.defaultProps,
-    searchField: props.searchField,
     showSearch: props.showSearch,
-    searchPlaceholder: props.searchPlaceholder,
   }
   const options: PageReferenceOptions = {
     dataSource: props.dataSource ?? '',
@@ -369,6 +363,7 @@ const handleChange = async () => {
     queryParams: props.queryParams,
     value: selectedItems.value,
     requestOptions: props.requestOptions ?? {},
+    searchOptions: props.searchOptions ?? {},
   }
 
   const res = await uni.navigateTo({
