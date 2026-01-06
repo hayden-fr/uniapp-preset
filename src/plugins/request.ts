@@ -189,7 +189,10 @@ declare global {
     /**
      * 响应拦截
      */
-    response?: (response: UniHttpRequestResponse) => UniHttpRequestResponse
+    response?: (
+      response: UniHttpRequestResponse,
+      options: UniHttpRequestOptions,
+    ) => UniHttpRequestResponse
   }
 
   type UniAppRequestOptionsWithoutCallback = Omit<
@@ -349,10 +352,10 @@ class UniHttpRequest {
         success: (res) => {
           let response = _.cloneDeep(res)
           if (custom.interceptors?.response) {
-            response = custom.interceptors.response(response)
+            response = custom.interceptors.response(response, requestOptions)
           }
           if (config.interceptors?.response) {
-            response = config.interceptors.response(response)
+            response = config.interceptors.response(response, requestOptions)
           }
           if (response.errMsg === 'request:ok') {
             const responseData = response.data as T
