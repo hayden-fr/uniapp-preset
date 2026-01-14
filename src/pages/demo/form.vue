@@ -17,7 +17,31 @@
         :label-position="baseFormData.labelPosition"
         :label-align="baseFormData.labelAlign"
         :readonly="baseFormData.readonly"
-      ></easycom-form-container>
+        :disabled="baseFormData.disabled"
+        :allow-clear="baseFormData.allowClear"
+      >
+        <template #customField-label>
+          <view>自定义</view>
+        </template>
+        <template #customField-label-suffix>
+          <view class="flex items-center gap-1">
+            <view class="i-tabler-alert-circle"></view>
+            <view class="text-gray">label-suffix</view>
+          </view>
+        </template>
+        <template #customField-prefix>
+          <view class="ml-28 flex items-center gap-1">
+            <view class="i-tabler-activity"></view>
+            <view class="text-gray">prefix</view>
+          </view>
+        </template>
+        <template #customField>
+          <view>CUSTOM</view>
+        </template>
+        <template #customField-suffix>
+          <view class="i-tabler-gps ml-1"></view>
+        </template>
+      </easycom-form-container>
     </view>
 
     <view class="px-4">
@@ -81,6 +105,7 @@ const baseFormData = ref<BaseFormData>({
   labelPosition: 'left',
   labelAlign: 'left',
   readonly: false,
+  disabled: false,
 })
 
 const baseItems = computed(() => {
@@ -91,6 +116,10 @@ const baseItems = computed(() => {
       type: 'group',
       classNames: {
         title: 'bg-gray-1',
+      },
+      groupConfig: {
+        readonly: false,
+        disabled: false,
       },
       children: [
         {
@@ -133,7 +162,16 @@ const baseItems = computed(() => {
           field: 'readonly',
           label: '只读',
           type: 'logic',
-          readonly: false,
+        },
+        {
+          field: 'disabled',
+          label: '禁用',
+          type: 'logic',
+        },
+        {
+          field: 'allowClear',
+          label: '清空按钮',
+          type: 'logic',
         },
       ],
     },
@@ -150,22 +188,20 @@ const baseItems = computed(() => {
           label: '文本',
           type: 'text',
           placeholder: '请输入文本内容',
-          allowClear: true,
+        },
+        {
+          field: 'textarea',
+          label: '大文本',
+          type: 'textarea',
+          placeholder: '请输入文本内容',
+          showCount: true,
         },
         {
           field: 'password',
           label: '密码',
           type: 'password',
           placeholder: '请输入密码',
-          allowClear: true,
           showVisible: true,
-        },
-        {
-          field: 'bigText',
-          label: '大文本',
-          type: 'textarea',
-          labelPosition: 'top',
-          placeholder: '请输入文本内容',
         },
         {
           field: 'number',
@@ -207,11 +243,29 @@ const baseItems = computed(() => {
           ],
         },
         {
+          field: 'logic',
+          type: 'logic',
+          label: '逻辑',
+          mode: 'radio',
+        },
+        {
           field: 'reference',
           type: 'reference',
           label: '参照',
           placeholder: '请选择',
           dataSource: '/reference/common/page',
+          multiple: true,
+          showSearch: true,
+          searchOptions: {},
+          listOptions: {},
+        },
+        {
+          field: 'customField',
+          label: '自定义',
+          type: 'custom',
+          styles: {
+            content: { flex: 'auto' },
+          },
         },
       ],
     },
