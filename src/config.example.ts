@@ -1,9 +1,3 @@
-import { type CacheOptions } from './plugins/cache'
-import { type InitializationCallback } from './plugins/init'
-import { type RequestOptions } from './plugins/request'
-import { type RouterOptions } from './plugins/router'
-import { type StoreOptions } from './plugins/store'
-
 const config = {
   accessTokenCacheName: 'access_token',
 }
@@ -13,36 +7,32 @@ declare global {
     /**
      * 用户登录凭证
      */
-    accessToken: string
+    accessToken?: string
     /**
      * 租户ID
      */
-    tenantId: string
+    tenantId?: string
+  }
+
+  /**
+   * 自定义列表数据类型
+   */
+  interface ListContainerType {
+    pagination: {
+      current: number
+      size: number
+      total: number
+    }
+    response: {
+      records: AnyObject[]
+      current: number
+      size: number
+      total: number
+    }
   }
 }
 
-interface Options {
-  // 缓存配置
-  cache?: CacheOptions
-
-  // 初始化配置
-  init?: InitializationCallback
-
-  // 状态管理配置
-  store?: StoreOptions
-
-  // 请求配置
-  request?: RequestOptions
-
-  // 路由配置
-  router?: RouterOptions
-}
-
-interface DefineOptionsFn {
-  (app: VueApp<Element>): Options
-}
-
-export const defineOptions: DefineOptionsFn = (app) => {
+export const defineOptions: AppConfigOptionsDefine = (app) => {
   return {
     // 缓存配置
     cache: {
@@ -139,14 +129,40 @@ export const defineOptions: DefineOptionsFn = (app) => {
         const $$router = app.config.globalProperties.$$router
         const $store = app.config.globalProperties.$store
         const accessToken = $store.accessToken
-        const { homePageRoute, loginPageRoute } = $$router
+        const { loginPageRoute } = $$router
 
         if (to.needLogin && !accessToken) {
-          to.fullPath = `/${loginPageRoute}?redirect=${encodeURIComponent(to.fullPath)}`
+          const redirect = encodeURIComponent(to.fullPath)
+          to.fullPath = `/${loginPageRoute}?redirect=${redirect}`
         }
         if (to.isLoginPage && accessToken) {
-          to.fullPath = `/${homePageRoute}`
+          to.fullPath = `/pages/demo/home`
         }
+        if (to.isHomePage) {
+          to.fullPath = `/pages/demo/home`
+        }
+      },
+    },
+
+    config: {
+      listContainerHook: {
+        resolvePagination: (pagination) => {
+          return {
+            current: pagination.page,
+            size: pagination.size,
+            total: pagination.total,
+          }
+        },
+        resolveResponse: (response) => {
+          return {
+            records: response.records,
+            pagination: {
+              current: response.current,
+              size: response.size,
+              total: response.total,
+            },
+          }
+        },
       },
     },
   }

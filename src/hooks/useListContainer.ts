@@ -1,6 +1,68 @@
-interface ListContainerOptions<
-  Params extends AnyObject,
-  Data extends AnyObject,
+declare global {
+  /**
+   * useListContainer 全局类型配置
+   *
+   * 主要用于自定义分页类型和返回数据结构
+   *
+   * 默认结构如下
+   *
+   * @example
+   * {
+   *   pagination: {
+   *     page: number
+   *     size: number
+   *     total: number
+   *   }
+   *   response: {
+   *     records: Data[]
+   *     pagination: Pagination
+   *   }
+   * }
+   */
+  interface ListContainerType {}
+
+  interface GlobalConfig {
+    // prettier-ignore
+    listContainerHook: ListContainerConfig<AnyObject, AnyObject, Pagination, ListResponse>
+  }
+
+  /**
+   * 列表分页参数配置
+   */
+  type Pagination = GetValue<ListContainerType, 'pagination', InnerPagination>
+
+  // prettier-ignore
+  /**
+   * 列表返回数据结构
+   */
+  type ListResponse<Data extends AnyObject = AnyObject> = GetValue<ListContainerType, 'response', InnenrListResponse<Data>>
+}
+
+/**
+ * 默认分页参数配置
+ */
+interface InnerPagination {
+  page: number
+  size: number
+  total: number
+}
+
+/**
+ * 默认列表返回数据结构
+ */
+interface InnenrListResponse<Data extends AnyObject = AnyObject> {
+  records: Data[]
+  pagination: Pagination
+}
+
+/**
+ * useListContainer 通用配置
+ */
+interface ListContainerConfig<
+  Params extends AnyObject = AnyObject,
+  Data extends AnyObject = AnyObject,
+  Paging = Pagination,
+  Response = ListResponse<Data>,
 > {
   /**
    * 是否手动触发请求
@@ -23,16 +85,21 @@ interface ListContainerOptions<
    */
   defaultPageSize?: number
   /**
-   * 刷新时遮罩层显示文字，设置 false 则不显示遮罩层
+   * 解析分页信息
    */
-  loadingMask?: MaybeRefOrGetter<false | string>
+  resolvePagination?: (paginaiton: InnerPagination) => Paging
   /**
-   * 获取列表数据
+   * 解析返回数据
    */
-  getListData: (
-    pagination: Pagination,
-    params: Params,
-  ) => Promise<ListStructure<Data>>
+  resolveResponse?: (
+    response: Response,
+    paginaiton: Paging,
+    requestParams: Params,
+  ) => InnenrListResponse<Data>
+  /**
+   * 判断是否还有更多数据
+   */
+  hasMoreData?: (response: InnenrListResponse<Data>, items: Data[]) => boolean
   /**
    * 列表项的 key
    */
@@ -57,6 +124,22 @@ interface ListContainerOptions<
    * 自定义加载更多数据时的显示内容
    */
   loadMoreContent?: MaybeRefOrGetter<string>
+}
+
+interface ListContainerOptions<
+  Params extends AnyObject = AnyObject,
+  Data extends AnyObject = AnyObject,
+  Paging = Pagination,
+  Reponse = ListResponse<Data>,
+> extends ListContainerConfig<Params, Data, Paging, Reponse> {
+  /**
+   * 刷新时遮罩层显示文字，设置 false 则不显示遮罩层
+   */
+  loadingMask?: MaybeRefOrGetter<false | string>
+  /**
+   * 获取列表数据
+   */
+  getListData: (pagination: Paging, params: Params) => Promise<Reponse>
   /**
    * 滚动时回调
    */
@@ -72,26 +155,46 @@ interface ListContainerOptions<
 }
 
 export const useListContainer = <
-  Params extends AnyObject,
-  Data extends AnyObject,
+  Params extends AnyObject = AnyObject,
+  Data extends AnyObject = AnyObject,
+  Paging = Pagination,
+  Response = ListResponse<Data>,
 >(
-  options: ListContainerOptions<Params, Data>,
+  options: ListContainerOptions<Params, Data, Paging, Response>,
 ) => {
+  const config = useConfig('listContainerHook', {
+    defaultPageSize: 10,
+    defaultQueryParams: {},
+    loadingMask: '加载中...',
+    resolvePagination: (pagination) => pagination as unknown as Pagination,
+    resolveResponse: (response) => response as unknown as InnenrListResponse,
+    hasMoreData: (response, items) => {
+      const total = response.pagination.total
+      const currentCount = items.length
+      return currentCount < total
+    },
+  })
+
+  const mergedConfig = computed(() => {
+    return _.defaultsDeep({}, options, config) as typeof options & typeof config
+  })
+
   const {
     manual,
     refresherEnabled,
+    loadingMask,
+    defaultPageSize,
     defaultQueryParams,
-    defaultPageSize = 10,
-    loadingMask = '加载中...',
     getListData,
-  } = options
+    resolvePagination,
+    resolveResponse,
+    hasMoreData,
+  } = mergedConfig.value
 
-  const items = ref<Data[]>([])
-  const queryParams = ref<Params>(
-    _.cloneDeep(defaultQueryParams ?? {}) as Params,
-  )
-  const pagination = ref<Pagination>({
-    current: 1,
+  const items = ref<Data[]>([] as Data[])
+  const queryParams = ref<Params>(_.cloneDeep(defaultQueryParams))
+  const pagination = ref<InnerPagination>({
+    page: 1,
     size: defaultPageSize,
     total: 0,
   })
@@ -100,6 +203,10 @@ export const useListContainer = <
   const loadMoreTriggered = ref(false)
   const noMoreTriggered = ref(false)
   const scrollTop = ref(0)
+
+  const resolveNoMoreTriggered = (response: InnenrListResponse<Data>) => {
+    noMoreTriggered.value = !hasMoreData(response, items.value)
+  }
 
   const refresh = async (e?: UniEvent) => {
     try {
@@ -116,16 +223,19 @@ export const useListContainer = <
       if (e?.type === 'refresherrefresh') {
         refresherTriggered.value = true
       }
-      pagination.value.current = 1
+      pagination.value.page = 1
+      // 解析分页参数
+      const paging = resolvePagination(_.cloneDeep(pagination.value)) as Paging
+      // 构建请求参数
+      const requestParams = _.cloneDeep(queryParams.value)
+      // 获取列表数据
+      const response = await getListData(paging, requestParams)
+      // 解析返回数据
+      const resolvedResponse = resolveResponse(response, paging, requestParams)
 
-      const response = await getListData(
-        toValue(pagination),
-        toValue(queryParams),
-      )
-
-      items.value = response.records
-      pagination.value.total = response.total
-      noMoreTriggered.value = items.value.length >= pagination.value.total
+      items.value = resolvedResponse.records
+      pagination.value.total = resolvedResponse.pagination.total
+      resolveNoMoreTriggered(resolvedResponse)
 
       await options.onRefresh?.(e)
       uni.hideLoading()
@@ -134,6 +244,7 @@ export const useListContainer = <
       pagination.value.total = 0
       noMoreTriggered.value = true
       toastError(error)
+      logging.error(error)
     } finally {
       scrollTop.value = 0
       refresherTriggered.value = false
@@ -146,21 +257,26 @@ export const useListContainer = <
       if (noMoreTriggered.value) return
 
       loadMoreTriggered.value = true
-      pagination.value.current++
 
-      const response = await getListData(
-        toValue(pagination),
-        toValue(queryParams),
-      )
+      pagination.value.page++
+      // 解析分页参数
+      const paging = resolvePagination(_.cloneDeep(pagination.value)) as Paging
+      // 构建请求参数
+      const requestParams = _.cloneDeep(queryParams.value)
+      // 获取列表数据
+      const response = await getListData(paging, requestParams)
+      // 解析返回数据
+      const resolvedResponse = resolveResponse(response, paging, requestParams)
 
-      items.value = [...items.value, ...response.records] as Data[]
-      pagination.value.total = response.total
-      noMoreTriggered.value = items.value.length >= pagination.value.total
+      items.value = [...items.value, ...resolvedResponse.records] as Data[]
+      pagination.value.total = resolvedResponse.pagination.total
+      resolveNoMoreTriggered(resolvedResponse)
 
       await options.onLoadMore?.(e)
     } catch (error) {
-      pagination.value.current--
+      pagination.value.page--
       toastError(error)
+      logging.error(error)
     } finally {
       loadMoreTriggered.value = false
     }

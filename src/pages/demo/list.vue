@@ -108,23 +108,41 @@ const conditionItems = computed(() => {
 })
 const manual = ref(true)
 const refresherEnabled = ref(false)
+/**
+ * 这个示例展示了手动控制列表的刷新时机和返回列表结构不包含 pagination 信息时的处理方式。
+ *
+ * 通过同时设置 manual 和 refresherEnabled 来控制列表的刷新行为。
+ * refresherEnabled 除了使用 ref 手动控制外，还可以使用 computed 计算属性来自动控制。
+ * `const refresherEnabled = computed(() => !manual.value)`
+ *
+ * 对于不包含 pagination 信息的列表数据，需要通过 resolveResponse、hasMoreData 联合处理。
+ * 首先通过 resolveResponse 方法，将列表数据转换为标准格式，但此时的 pagination 是丢失的，
+ * 不能作为标准程序的逻辑判断，需要通过 hasMoreData 来进行辅助判断。
+ *
+ * 示例展示了一个简单的判断逻辑，判断列表是否还有更多数据。
+ * 实际场景中，需要根据具体的业务逻辑进行处理。例如通过返回列表为空即表示没有更多数据了。
+ */
 const { queryParams, listProps: controlListProps } = useListContainer({
   manual: manual,
   refresherEnabled: refresherEnabled,
   getListData: async (pagination, params) => {
+    return Array.from({ length: pagination.size }).map((_, index) => {
+      return {
+        id: Math.random(),
+        no: (pagination.current - 1) * pagination.size + index + 1,
+        name: '张三',
+        content: params.content,
+      }
+    })
+  },
+  resolveResponse: (response, pagination) => {
     return {
-      current: pagination.current,
-      size: pagination.size,
-      total: 100,
-      records: Array.from({ length: pagination.size }).map((_, index) => {
-        return {
-          id: Math.random(),
-          no: (pagination.current - 1) * pagination.size + index + 1,
-          name: '张三',
-          content: params.content,
-        }
-      }),
+      records: response,
+      pagination: pagination,
     }
+  },
+  hasMoreData(_response, items) {
+    return items.length < 100
   },
 })
 
@@ -134,6 +152,7 @@ const prepareFetchList = async () => {
     return toastError('请输入筛选条件')
   }
   prepareLoading.value = true
+  // 模拟前置准备工作
   await new Promise((resolve) => setTimeout(resolve, 5000))
   prepareLoading.value = false
   // 当前置准备工作完成后，先将 manual 设置为 false，即允许列表组件自动处理列表的刷新与加载。
