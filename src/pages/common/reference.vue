@@ -90,8 +90,9 @@ const eventChannel = useEventChannel((e) => {
 
 const { queryParams, listProps, refresh } = useListContainer({
   rowKey: propsId,
-  manual: manual,
   defaultPageSize: 20,
+  ...options.value.listOptions,
+  manual: manual,
   refresherEnabled: refresherEnabled,
   getListData: async (pagination, params) => {
     const dataSource = options.value.dataSource || ''
@@ -114,7 +115,7 @@ const { queryParams, listProps, refresh } = useListContainer({
     // 合并透传请求参数
     Object.assign(requestOptions, options.value.requestOptions)
 
-    return request.httpRequest<ListStructure<any>>(requestOptions)
+    return request.httpRequest(requestOptions)
   },
 })
 

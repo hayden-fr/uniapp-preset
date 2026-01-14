@@ -159,6 +159,10 @@ interface ReferenceOptions {
   searchOptions?: FieldItem['text'] & {
     field?: string
   }
+  /**
+   * 列表组件参数透传
+   */
+  listOptions?: GlobalConfig['listContainerHook']
 }
 
 declare global {
@@ -364,6 +368,7 @@ const handleChange = async () => {
     value: selectedItems.value,
     requestOptions: props.requestOptions ?? {},
     searchOptions: props.searchOptions ?? {},
+    listOptions: props.listOptions ?? {},
   }
 
   const res = await uni.navigateTo({
