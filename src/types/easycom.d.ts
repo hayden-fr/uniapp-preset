@@ -11,6 +11,7 @@ declare module 'vue' {
     EasycomListContainer: (typeof import('../components/containers/list-container/list-container.vue'))['default']
     EasycomPageContainer: (typeof import('../components/containers/page-container/page-container.vue'))['default']
     EasycomButton: (typeof import('../components/button/button.vue'))['default']
+    EasycomConfigProvider: (typeof import('../components/config-provider/config-provider.vue'))['default']
     EasycomField: (typeof import('../components/field/field.vue'))['default']
     EasycomTabs: (typeof import('../components/tabs/tabs.vue'))['default']
   }

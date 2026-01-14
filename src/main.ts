@@ -5,6 +5,7 @@ import { defineOptions } from './config'
 import * as Cache from './plugins/cache'
 import * as Initialization from './plugins/init'
 import * as Logging from './plugins/logging'
+import * as config from './plugins/provider'
 import * as Request from './plugins/request'
 import * as Router from './plugins/router'
 import * as Store from './plugins/store'
@@ -29,6 +30,8 @@ export function createApp() {
   app.use(Router.createRouter(), options.router)
   // 主题组件
   app.use(Theme.createTheme())
+  // 全局配置
+  app.use(config.createConfigProvider(), options.config)
 
   app.config.globalProperties.$init()
 

@@ -1,5 +1,6 @@
 import { type CacheOptions } from '../plugins/cache'
 import { type InitializationCallback } from '../plugins/init'
+import { type ConfigProviderOptions } from '../plugins/provider'
 import { type RequestOptions } from '../plugins/request'
 import { type RouterOptions } from '../plugins/router'
 import { type StoreOptions } from '../plugins/store'
@@ -20,6 +21,9 @@ declare global {
 
     // 路由配置
     router?: RouterOptions
+
+    // 全局行为配置
+    config?: ConfigProviderOptions
   }
 
   type AppConfigOptionsDefine = (app: VueApp<Element>) => AppConfigOptions
