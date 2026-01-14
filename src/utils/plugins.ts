@@ -13,19 +13,10 @@ const create = <T extends AnyObject, N extends keyof T>(module: T, name: N) => {
   }) as T[N]
 }
 
-export const useInit: typeof plugins_init.useInit = () => {
-  return plugins_init.useInit()
-}
-export const useRoute: typeof plugins_router.useRoute = () => {
-  return plugins_router.useRoute()
-}
-export const useStore: typeof plugins_store.useStore = () => {
-  return plugins_store.useStore()
-}
-export const useTheme: typeof plugins_theme.useTheme = () => {
-  return plugins_theme.useTheme()
-}
-
+export const useInit = create(plugins_init, 'useInit')
+export const useRoute = create(plugins_router, 'useRoute')
+export const useStore = create(plugins_store, 'useStore')
+export const useTheme = create(plugins_theme, 'useTheme')
 export const useConfig = create(plugins_provider, 'useConfigProvider')
 export const cache = plugins_cache.getUniCacheInstance()
 export const logging = plugins_logging.getUniLoggingInstance()
