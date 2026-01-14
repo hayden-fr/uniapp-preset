@@ -49,7 +49,7 @@ class UniRouter {
   constructor(options: { appConfig: UniAppPagesConfig; init: Promise<void> }) {
     this.init = options.init
     const appConfig = options.appConfig
-    this.globalStyle = appPagesConfig.globalStyle ?? {}
+    this.globalStyle = (appPagesConfig.globalStyle ?? {}) as UniPageStyle
     this.pages = appConfig.pages ?? []
     this.tabBar = appConfig.tabBar ?? {
       color: 'black',
@@ -318,7 +318,7 @@ class Router {
     const { beforeEach, afterEach } = options
 
     instance.value = new UniRouter({
-      appConfig: appPagesConfig,
+      appConfig: appPagesConfig as UniAppPagesConfig,
       init: app.config.globalProperties.$init.promise,
     })
     if (beforeEach) {
