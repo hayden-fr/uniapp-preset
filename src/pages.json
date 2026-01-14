@@ -21,6 +21,9 @@
     {
       "path": "pages/demo/user",
       "needLogin": true
+    },
+    {
+      "path": "pages/common/reference"
     }
   ],
   "uniIdRouter": {
