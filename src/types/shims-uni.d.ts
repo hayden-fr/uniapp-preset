@@ -13,6 +13,11 @@ declare module 'vue' {
   }
 }
 
+declare module '@/pages.json' {
+  const uniAppPagesConfig: UniAppPagesConfig
+  export default uniAppPagesConfig
+}
+
 declare global {
   type HexColor = `#${string}`
 
@@ -89,4 +94,27 @@ declare global {
     timeStamp: number
     type: string
   }
+
+  type UniInputDetail = {
+    cursor: number
+    value: string
+  }
+
+  type UniInputEvent = UniEvent<UniInputDetail>
+
+  type UniTapOrClickDetail = {
+    x: number
+    y: number
+  }
+
+  type UniTapEvent = UniEvent<UniTapOrClickDetail>
+
+  type UniGetPhoneNumberDetail = {
+    code: string
+    encryptedData: string
+    errMsg: string
+    iv: string
+  }
+
+  type UniGetPhoneNumberEvent = UniEvent<UniGetPhoneNumberDetail>
 }
