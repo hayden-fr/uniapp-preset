@@ -48,12 +48,6 @@ declare global {
    */
   type AnyArray = Array<any>
 
-  type GetValue<O, K, V = undefined> = K extends keyof O ? O[K] : V
-
-  type NotUndefined<T> = T extends undefined ? never : T
-
-  type IfAny<T, Y, N> = 0 extends 1 & T ? Y : N
-
   /**
    * 日志接口
    */

@@ -2,7 +2,7 @@ declare global {
   interface GlobalConfig {}
 }
 
-type PartialConfig = InferDefaults<GlobalConfig>
+type PartialConfig = DeepOptional<GlobalConfig>
 
 const configKey = Symbol('ConfigProvider') as InjectionKey<PartialConfig>
 
@@ -20,32 +20,26 @@ export function createConfigProvider() {
 
 type ConfigField = keyof GlobalConfig
 
-type Primitive = string | number | boolean | bigint | symbol | null | undefined
-type ObjectLike = Map<any, any> | Set<any> | WeakMap<any, any> | WeakSet<any>
-type BuiltIn = Primitive | AnyFunction | AnyArray | Date | RegExp | ObjectLike
-
-type InferDefaults<T> = T extends BuiltIn
-  ? T
-  : {
-      [K in keyof T]?: InferDefaults<T[K]>
-    }
-
-type WithDefaults<T, Defaults extends InferDefaults<T>> = T extends BuiltIn
-  ? NonNullable<Defaults>
-  : Readonly<Omit<T, keyof Defaults>> & {
-      readonly [K in keyof Defaults &
-        keyof T]-?: Defaults[K] extends InferDefaults<T[K]>
-        ? WithDefaults<T[K], Defaults[K]>
-        : Defaults[K]
-    }
+// prettier-ignore
+type WithDefaults<T, Defaults extends DeepOptional<T>> = Prettify<
+  {
+    readonly [K in keyof T as K extends keyof Defaults ? K : never]-?: [T[K], Defaults[K]] extends [infer U, infer D]
+      ? D extends DeepOptional<U>
+        ? WithDefaults<U, D>
+        : U
+      : never
+  } & {
+    readonly [K in keyof T as K extends keyof Defaults ? never : K]: T[K]
+  }
+>
 
 export function useConfigProvider(): PartialConfig
 // prettier-ignore
-export function useConfigProvider<DefaultConfig extends InferDefaults<PartialConfig>>(config: DefaultConfig): WithDefaults<PartialConfig, DefaultConfig>
+export function useConfigProvider<DefaultConfig extends DeepOptional<PartialConfig>>(config: DefaultConfig): WithDefaults<PartialConfig, DefaultConfig>
 // prettier-ignore
-export function useConfigProvider<Key extends ConfigField>(key: Key): InferDefaults<GlobalConfig[Key]> | undefined
+export function useConfigProvider<Key extends ConfigField>(key: Key): DeepOptional<GlobalConfig[Key]> | undefined
 // prettier-ignore
-export function useConfigProvider<Key extends ConfigField, DefaultConfig extends InferDefaults<GlobalConfig[Key]>>(key: Key, defaultValue: DefaultConfig): WithDefaults<GlobalConfig[Key], DefaultConfig>
+export function useConfigProvider<Key extends ConfigField, DefaultConfig extends DeepOptional<GlobalConfig[Key]>>(key: Key, defaultValue: DefaultConfig): WithDefaults<GlobalConfig[Key], DefaultConfig>
 export function useConfigProvider<Key extends ConfigField>(
   keyOrConfig?: ConfigField | PartialConfig,
   defaultValue?: GlobalConfig[Key],
