@@ -1,4 +1,4 @@
-/// <reference types="typescript-builtins-extended" />
+/// <reference types="typescript-builtins-extended/global" />
 
 export {}
 
