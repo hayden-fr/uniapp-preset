@@ -21,17 +21,19 @@ export function createConfigProvider() {
 type ConfigField = keyof GlobalConfig
 
 // prettier-ignore
-type WithDefaults<T, Defaults extends DeepOptional<T>> = Prettify<
-  {
-    readonly [K in keyof T as K extends keyof Defaults ? K : never]-?: [T[K], Defaults[K]] extends [infer U, infer D]
-      ? D extends DeepOptional<U>
-        ? WithDefaults<U, D>
-        : U
-      : never
-  } & {
-    readonly [K in keyof T as K extends keyof Defaults ? never : K]: T[K]
-  }
->
+type WithDefaults<T, Defaults extends DeepOptional<T>> = T extends (...args: any[]) => any
+  ? T
+  : Prettify<
+      {
+        readonly [K in keyof T as K extends keyof Defaults ? K : never]-?: [T[K], Defaults[K]] extends [infer U, infer D]
+          ? D extends DeepOptional<U>
+            ? WithDefaults<U, D>
+            : U
+          : never
+      } & {
+        readonly [K in keyof T as K extends keyof Defaults ? never : K]: T[K]
+      }
+    >
 
 export function useConfigProvider(): PartialConfig
 // prettier-ignore
