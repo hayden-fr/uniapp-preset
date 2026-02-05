@@ -58,8 +58,8 @@
   </view>
 </template>
 
-<script setup lang="ts" generic="Data extends AnyObject">
-interface Props {
+<script lang="ts">
+interface ListContainerOptions<Data extends AnyObject> {
   /**
    * 数据源
    */
@@ -120,6 +120,15 @@ interface Props {
    * 滚动事件
    */
   onScroll?: (e: UniEvent) => void | Promise<void>
+}
+
+declare global {
+  type ListContainerProps<Data extends AnyObject> = ListContainerOptions<Data>
+}
+</script>
+
+<script setup lang="ts" generic="Data extends AnyObject">
+interface Props extends ListContainerOptions<Data> {
   /**
    * 语义化结构 class
    */

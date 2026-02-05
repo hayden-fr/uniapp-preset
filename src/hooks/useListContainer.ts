@@ -2,24 +2,10 @@ declare global {
   /**
    * useListContainer 全局类型配置
    *
-   * 主要用于自定义分页类型和返回数据结构
-   *
-   * 默认结构如下
-   *
-   * @example
-   * {
-   *   pagination: {
-   *     page: number
-   *     size: number
-   *     total: number
-   *   }
-   *   response: {
-   *     records: Data[]
-   *     pagination: Pagination
-   *   }
-   * }
+   * 主要用于自定义分页类型和数据返回结构
    */
-  interface ListContainerType {}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  interface DefineListContainerType<Data extends AnyObject = AnyObject> {}
 
   interface GlobalConfig {
     // prettier-ignore
@@ -29,13 +15,14 @@ declare global {
   /**
    * 列表分页参数配置
    */
-  type Pagination = GetValue<ListContainerType, 'pagination', InnerPagination>
-
   // prettier-ignore
+  type Pagination = GetValue<DefineListContainerType, 'pagination', InnerPagination>
+
   /**
-   * 列表返回数据结构
+   * 列表数据返回结构
    */
-  type ListResponse<Data extends AnyObject = AnyObject> = GetValue<ListContainerType, 'response', InnenrListResponse<Data>>
+  // prettier-ignore
+  type ListResponse<Data extends AnyObject = AnyObject> = GetValue<DefineListContainerType<Data>, 'response', InnerListResponse<Data>>
 }
 
 /**
@@ -50,7 +37,7 @@ interface InnerPagination {
 /**
  * 默认列表返回数据结构
  */
-interface InnenrListResponse<Data extends AnyObject = AnyObject> {
+interface InnerListResponse<Data extends AnyObject = AnyObject> {
   records: Data[]
   pagination: Pagination
 }
@@ -87,7 +74,7 @@ interface ListContainerConfig<
   /**
    * 解析分页信息
    */
-  resolvePagination?: (paginaiton: InnerPagination) => Paging
+  resolvePagination?: (pagination: InnerPagination) => Paging
   /**
    * 解析返回数据
    */
@@ -95,11 +82,11 @@ interface ListContainerConfig<
     response: Response,
     paginaiton: Paging,
     requestParams: Params,
-  ) => InnenrListResponse<Data>
+  ) => InnerListResponse<Data>
   /**
    * 判断是否还有更多数据
    */
-  hasMoreData?: (response: InnenrListResponse<Data>, items: Data[]) => boolean
+  hasMoreData?: (response: InnerListResponse<Data>, items: Data[]) => boolean
   /**
    * 列表项的 key
    */
@@ -130,8 +117,8 @@ interface ListContainerOptions<
   Params extends AnyObject = AnyObject,
   Data extends AnyObject = AnyObject,
   Paging = Pagination,
-  Reponse = ListResponse<Data>,
-> extends ListContainerConfig<Params, Data, Paging, Reponse> {
+  Response = ListResponse<Data>,
+> extends ListContainerConfig<Params, Data, Paging, Response> {
   /**
    * 刷新时遮罩层显示文字，设置 false 则不显示遮罩层
    */
@@ -139,7 +126,7 @@ interface ListContainerOptions<
   /**
    * 获取列表数据
    */
-  getListData: (pagination: Paging, params: Params) => Promise<Reponse>
+  getListData: (pagination: Paging, params: Params) => Promise<Response>
   /**
    * 滚动时回调
    */
@@ -151,23 +138,35 @@ interface ListContainerOptions<
   /**
    * 加载更多数据后回调
    */
-  onLoadMore?: (e: UniEvent) => void | Promise<void>
+  onLoadMore?: (e?: UniEvent) => void | Promise<void>
 }
 
-export const useListContainer = <
-  Params extends AnyObject = AnyObject,
-  Data extends AnyObject = AnyObject,
+export function useListContainer<
+  Params extends AnyObject,
+  Data extends AnyObject,
   Paging = Pagination,
   Response = ListResponse<Data>,
 >(
-  options: ListContainerOptions<Params, Data, Paging, Response>,
-) => {
+  options:
+    | Omit<
+        ListContainerOptions<Params, Data, Paging, ListResponse<Data>>,
+        'resolveResponse'
+      >
+    | RequiredByKeys<
+        ListContainerOptions<Params, Data, Paging, Response>,
+        'resolveResponse'
+      >,
+) {
   const config = useConfig('listContainerHook', {
     defaultPageSize: 10,
     defaultQueryParams: {},
     loadingMask: '加载中...',
-    resolvePagination: (pagination) => pagination as unknown as Pagination,
-    resolveResponse: (response) => response as unknown as InnenrListResponse,
+    resolvePagination: (pagination) => {
+      return pagination as unknown as Pagination
+    },
+    resolveResponse: (response) => {
+      return response as unknown as InnerListResponse<Data>
+    },
     hasMoreData: (response, items) => {
       const total = response.pagination.total
       const currentCount = items.length
@@ -175,8 +174,13 @@ export const useListContainer = <
     },
   })
 
-  const mergedConfig = computed(() => {
-    return _.defaultsDeep({}, options, config) as typeof options & typeof config
+  type Options = RequiredByKeys<
+    ListContainerOptions<Params, Data, Paging, Response>,
+    RequiredKeys<typeof config>
+  >
+
+  const mergedConfig = computed<Options>(() => {
+    return _.defaultsDeep({}, options, config)
   })
 
   const {
@@ -204,8 +208,8 @@ export const useListContainer = <
   const noMoreTriggered = ref(false)
   const scrollTop = ref(0)
 
-  const resolveNoMoreTriggered = (response: InnenrListResponse<Data>) => {
-    noMoreTriggered.value = !hasMoreData(response, items.value)
+  const resolveNoMoreTriggered = (response: InnerListResponse<Data>) => {
+    noMoreTriggered.value = !hasMoreData(response, items.value as Data[])
   }
 
   const refresh = async (e?: UniEvent) => {
@@ -225,7 +229,7 @@ export const useListContainer = <
       }
       pagination.value.page = 1
       // 解析分页参数
-      const paging = resolvePagination(_.cloneDeep(pagination.value)) as Paging
+      const paging = resolvePagination(_.cloneDeep(pagination.value))
       // 构建请求参数
       const requestParams = _.cloneDeep(queryParams.value)
       // 获取列表数据
@@ -251,7 +255,7 @@ export const useListContainer = <
     }
   }
 
-  const loadMore = async (e: UniEvent) => {
+  const loadMore = async (e?: UniEvent) => {
     try {
       if (loadMoreTriggered.value) return
       if (noMoreTriggered.value) return
@@ -260,7 +264,7 @@ export const useListContainer = <
 
       pagination.value.page++
       // 解析分页参数
-      const paging = resolvePagination(_.cloneDeep(pagination.value)) as Paging
+      const paging = resolvePagination(_.cloneDeep(pagination.value))
       // 构建请求参数
       const requestParams = _.cloneDeep(queryParams.value)
       // 获取列表数据
@@ -323,13 +327,11 @@ export const useListContainer = <
   return {
     items,
     scrollTop,
-    refresherEnabled,
     refresherTriggered,
     refresh,
     loadMoreTriggered,
     noMoreTriggered,
     loadMore,
-    onScroll,
     listProps,
     queryParams,
   }

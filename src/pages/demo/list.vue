@@ -108,6 +108,7 @@ const conditionItems = computed(() => {
 })
 const manual = ref(true)
 const refresherEnabled = ref(false)
+
 /**
  * 这个示例展示了手动控制列表的刷新时机和返回列表结构不包含 pagination 信息时的处理方式。
  *

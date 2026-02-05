@@ -17,14 +17,14 @@ declare global {
   /**
    * 自定义列表数据类型
    */
-  interface ListContainerType {
+  interface DefineListContainerType<Data extends AnyObject = AnyObject> {
     pagination: {
       current: number
       size: number
       total: number
     }
     response: {
-      records: AnyObject[]
+      records: Data[]
       current: number
       size: number
       total: number
