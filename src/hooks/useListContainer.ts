@@ -1,11 +1,14 @@
+declare const DataTypeSymbol: unique symbol
+
 declare global {
   /**
    * useListContainer 全局类型配置
    *
    * 主要用于自定义分页类型和数据返回结构
    */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  interface DefineListContainerType<Data extends AnyObject = AnyObject> {}
+  interface DefineListContainerType<Data extends AnyObject = AnyObject> {
+    readonly [DataTypeSymbol]: Data
+  }
 
   interface GlobalConfig {
     // prettier-ignore

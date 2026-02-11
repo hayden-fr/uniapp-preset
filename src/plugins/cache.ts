@@ -68,7 +68,17 @@ declare module 'vue' {
 }
 
 export interface CacheOptions {
+  /**
+   * 缓存键名前缀
+   */
   prefix?: string
+  /**
+   * 缓存前缀与键名之间的分隔符，默认为短横线 '-'
+   *
+   * 如果未配置 prefix，delimiter 则不生效
+   *
+   * 如果不需要分隔符，可以配置为空字符串 ''
+   */
   delimiter?: string
 }
 

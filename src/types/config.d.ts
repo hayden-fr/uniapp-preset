@@ -7,22 +7,34 @@ import { type StoreOptions } from '../plugins/store'
 
 declare global {
   type AppConfigOptions = {
-    // 缓存配置
+    /**
+     * 全局缓存配置
+     */
     cache?: CacheOptions
 
-    // 初始化配置
+    /**
+     * 应用初始化设置
+     */
     init?: InitializationCallback
 
-    // 状态管理配置
+    /**
+     * 全局状态管理
+     */
     store?: StoreOptions
 
-    // 请求配置
+    /**
+     * 全局请求配置
+     */
     request?: RequestOptions
 
-    // 路由配置
+    /**
+     * 路由配置
+     */
     router?: RouterOptions
 
-    // 全局行为配置
+    /**
+     * 全局组件配置
+     */
     config?: ConfigProviderOptions
   }
 

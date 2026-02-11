@@ -309,7 +309,13 @@ declare module 'vue' {
 }
 
 export interface RouterOptions {
+  /**
+   * 路由前置守卫
+   */
   beforeEach?: UniRouterEachInterceptor
+  /**
+   * 路由后置守卫
+   */
   afterEach?: UniRouterEachInterceptor
 }
 
