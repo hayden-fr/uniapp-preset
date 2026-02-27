@@ -1,6 +1,6 @@
 [
   {
     "action": "remove",
-    "files": ["LICENSE"]
+    "files": [".bin", "src/pages/demo", "LICENSE"]
   }
 ]
