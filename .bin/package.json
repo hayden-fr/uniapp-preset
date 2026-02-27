@@ -2,12 +2,8 @@
   "name": "create-uniapp",
   "private": true,
   "version": "1.0.0",
-  "bin": "dist/bin.js",
-  "files": [
-    "dist"
-  ],
   "scripts": {
-    "build": "pnpx rolldown src/bin.mjs -d dist -f cjs -e node:* && pnpm pack --out cli.tgz"
+    "build": "pnpx rolldown src/bin.mjs -o cli.js -f cjs -e node:*"
   },
   "devDependencies": {
     "tar": "^7.5.9"
