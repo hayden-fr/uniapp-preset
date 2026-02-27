@@ -244,21 +244,7 @@ async function updateProject(project) {
   }
   await extract(tempdir)
 
-  const skipFiles = [
-    'src/api',
-    'src/locales',
-    'src/App.vue',
-    'src/config.example.ts',
-    'src/config.ts',
-    'src/manifest.json',
-    'src/pages.json',
-    'src/theme.ts',
-    'README.md',
-  ]
-  for (const file of skipFiles) {
-    fs.rmSync(path.resolve(tempdir, file), { recursive: true, force: true })
-  }
-
+  // 合并依赖
   const originalPackageData = resolveJSON(packagePath)
   const tempPackagePath = path.resolve(tempdir, 'package.json')
   const targetPackageData = resolveJSON(tempPackagePath)
@@ -274,6 +260,31 @@ async function updateProject(project) {
   merge('devDependencies')
   fs.writeFileSync(packagePath, JSON.stringify(originalPackageData, null, 2))
   fs.rmSync(tempPackagePath)
+
+  // 删除不需要更新的文件
+  const skipFiles = [
+    'src/api',
+    'src/locales',
+    'src/types/auto-import.d.ts',
+    'src/types/easycom.d.ts',
+    'src/App.vue',
+    'src/config.example.ts',
+    'src/config.ts',
+    'src/manifest.json',
+    'src/pages.json',
+    'src/theme.ts',
+    '.editorconfig',
+    '.gitignore',
+    '.prettierignore',
+    'README.md',
+    'eslint.config.mjs',
+    'pnpm-lock.yaml',
+    'tsconfig.json',
+    'vite.config.ts',
+  ]
+  for (const file of skipFiles) {
+    fs.rmSync(path.resolve(tempdir, file), { recursive: true, force: true })
+  }
 
   // renameSync
   ;(function move(sourcePath, targetPath) {
